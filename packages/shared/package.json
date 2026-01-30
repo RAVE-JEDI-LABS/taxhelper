@@ -1,0 +1,16 @@
+{
+  "name": "@taxhelper/shared",
+  "version": "1.0.0",
+  "description": "Shared OpenAPI schema and generated types for TaxHelper",
+  "main": "generated/typescript/schema.ts",
+  "types": "generated/typescript/schema.ts",
+  "scripts": {
+    "generate": "pnpm run generate:ts",
+    "generate:ts": "openapi-typescript openapi.yaml -o generated/typescript/schema.ts",
+    "validate": "npx @redocly/cli lint openapi.yaml"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.0.0",
+    "@redocly/cli": "^1.5.0"
+  }
+}

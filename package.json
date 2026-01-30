@@ -1,0 +1,14 @@
+{
+  "name": "taxhelper",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "generate": "pnpm --filter @taxhelper/shared generate",
+    "generate:types": "pnpm --filter @taxhelper/shared generate:ts",
+    "dev:frontend": "pnpm --filter @taxhelper/frontend dev",
+    "build:frontend": "pnpm --filter @taxhelper/frontend build"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.0.0"
+  }
+}

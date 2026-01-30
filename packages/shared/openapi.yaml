@@ -1,0 +1,1443 @@
+openapi: 3.0.3
+info:
+  title: Gordon Ullen CPA Tax Helper API
+  description: Tax preparation workflow automation system
+  version: 1.0.0
+  contact:
+    name: RaveJedi Labs
+
+servers:
+  - url: http://localhost:3001
+    description: Local development
+  - url: https://api.taxhelper.com
+    description: Production
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Firebase Auth JWT token
+
+  schemas:
+    # Address
+    Address:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [home, mailing, business]
+        street:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zip:
+          type: string
+
+    # Banking Information
+    BankingInfo:
+      type: object
+      properties:
+        routingNumber:
+          type: string
+        accountNumber:
+          type: string
+        lastVerified:
+          type: string
+          format: date-time
+
+    # Customer
+    Customer:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Address'
+        entityType:
+          type: string
+          enum: [individual, s-corp, partnership, c-corp, llc, schedule-c]
+        ein:
+          type: string
+        ssnEncrypted:
+          type: string
+        assignedPreparer:
+          type: string
+        bankingInfo:
+          $ref: '#/components/schemas/BankingInfo'
+        portalAccess:
+          type: boolean
+          default: false
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CustomerCreate:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Address'
+        entityType:
+          type: string
+          enum: [individual, s-corp, partnership, c-corp, llc, schedule-c]
+        ein:
+          type: string
+        assignedPreparer:
+          type: string
+        portalAccess:
+          type: boolean
+          default: false
+
+    CustomerUpdate:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Address'
+        entityType:
+          type: string
+          enum: [individual, s-corp, partnership, c-corp, llc, schedule-c]
+        ein:
+          type: string
+        assignedPreparer:
+          type: string
+        bankingInfo:
+          $ref: '#/components/schemas/BankingInfo'
+        portalAccess:
+          type: boolean
+
+    # Document
+    DocumentType:
+      type: string
+      enum: [w2, 1099-r, 1099-g, 1099-int, 1099-div, 1099-nec, k1, other]
+
+    DocumentStatus:
+      type: string
+      enum: [pending, processed, verified]
+
+    Document:
+      type: object
+      properties:
+        id:
+          type: string
+        customerId:
+          type: string
+        taxYear:
+          type: integer
+        type:
+          $ref: '#/components/schemas/DocumentType'
+        fileName:
+          type: string
+        fileUrl:
+          type: string
+        uploadedAt:
+          type: string
+          format: date-time
+        uploadedBy:
+          type: string
+        ocrExtracted:
+          type: boolean
+          default: false
+        extractedData:
+          type: object
+          additionalProperties: true
+        status:
+          $ref: '#/components/schemas/DocumentStatus'
+
+    DocumentUpload:
+      type: object
+      required:
+        - customerId
+        - taxYear
+        - fileName
+      properties:
+        customerId:
+          type: string
+        taxYear:
+          type: integer
+        type:
+          $ref: '#/components/schemas/DocumentType'
+        fileName:
+          type: string
+
+    # Routing Sheet
+    RoutingSheet:
+      type: object
+      properties:
+        dropOffDate:
+          type: string
+          format: date-time
+        inPersonOrDropOff:
+          type: string
+          enum: [in-person, drop-off, portal]
+        missingDocuments:
+          type: array
+          items:
+            type: string
+        notes:
+          type: string
+
+    # Payment
+    PaymentStatus:
+      type: string
+      enum: [pending, partial, paid]
+
+    PaymentMethod:
+      type: string
+      enum: [cash, check, card, square]
+
+    Payment:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: float
+        status:
+          $ref: '#/components/schemas/PaymentStatus'
+        method:
+          $ref: '#/components/schemas/PaymentMethod'
+        paidAt:
+          type: string
+          format: date-time
+
+    # Tax Return
+    ReturnType:
+      type: string
+      enum: ['1040', '1120', '1120s', '1065', '990']
+
+    ReturnStatus:
+      type: string
+      enum:
+        - intake
+        - documents_pending
+        - documents_complete
+        - in_preparation
+        - review_needed
+        - waiting_on_client
+        - ready_for_signing
+        - completed
+        - filed
+        - picked_up
+        - extension_needed
+        - extension_filed
+
+    TaxReturn:
+      type: object
+      properties:
+        id:
+          type: string
+        customerId:
+          type: string
+        taxYear:
+          type: integer
+        returnType:
+          $ref: '#/components/schemas/ReturnType'
+        status:
+          $ref: '#/components/schemas/ReturnStatus'
+        assignedPreparer:
+          type: string
+        dueDate:
+          type: string
+          format: date-time
+        extensionFiled:
+          type: boolean
+          default: false
+        extensionDate:
+          type: string
+          format: date-time
+        routingSheet:
+          $ref: '#/components/schemas/RoutingSheet'
+        payment:
+          $ref: '#/components/schemas/Payment'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    TaxReturnCreate:
+      type: object
+      required:
+        - customerId
+        - taxYear
+        - returnType
+      properties:
+        customerId:
+          type: string
+        taxYear:
+          type: integer
+        returnType:
+          $ref: '#/components/schemas/ReturnType'
+        assignedPreparer:
+          type: string
+        dueDate:
+          type: string
+          format: date-time
+        routingSheet:
+          $ref: '#/components/schemas/RoutingSheet'
+
+    TaxReturnStatusUpdate:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/ReturnStatus'
+        notes:
+          type: string
+
+    # Appointment
+    AppointmentType:
+      type: string
+      enum: [tax_prep, drop_off, pick_up, signing, consultation]
+
+    AppointmentStatus:
+      type: string
+      enum: [scheduled, confirmed, completed, cancelled, no_show]
+
+    Appointment:
+      type: object
+      properties:
+        id:
+          type: string
+        customerId:
+          type: string
+        type:
+          $ref: '#/components/schemas/AppointmentType'
+        scheduledAt:
+          type: string
+          format: date-time
+        duration:
+          type: integer
+          description: Duration in minutes
+        assignedTo:
+          type: string
+        status:
+          $ref: '#/components/schemas/AppointmentStatus'
+        reminderSent:
+          type: boolean
+          default: false
+        notes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AppointmentCreate:
+      type: object
+      required:
+        - customerId
+        - type
+        - scheduledAt
+      properties:
+        customerId:
+          type: string
+        type:
+          $ref: '#/components/schemas/AppointmentType'
+        scheduledAt:
+          type: string
+          format: date-time
+        duration:
+          type: integer
+          default: 60
+        assignedTo:
+          type: string
+        notes:
+          type: string
+
+    # Communication
+    CommunicationType:
+      type: string
+      enum: [email, sms, call]
+
+    CommunicationDirection:
+      type: string
+      enum: [inbound, outbound]
+
+    CommunicationStatus:
+      type: string
+      enum: [sent, delivered, failed]
+
+    CommunicationTrigger:
+      type: string
+      enum: [manual, automation, agent]
+
+    Communication:
+      type: object
+      properties:
+        id:
+          type: string
+        customerId:
+          type: string
+        type:
+          $ref: '#/components/schemas/CommunicationType'
+        direction:
+          $ref: '#/components/schemas/CommunicationDirection'
+        subject:
+          type: string
+        content:
+          type: string
+        sentAt:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/CommunicationStatus'
+        triggeredBy:
+          $ref: '#/components/schemas/CommunicationTrigger'
+
+    CommunicationSend:
+      type: object
+      required:
+        - customerId
+        - type
+        - content
+      properties:
+        customerId:
+          type: string
+        type:
+          $ref: '#/components/schemas/CommunicationType'
+        subject:
+          type: string
+        content:
+          type: string
+        triggeredBy:
+          $ref: '#/components/schemas/CommunicationTrigger'
+          default: manual
+
+    # Kanban
+    KanbanStatus:
+      type: string
+      enum: [backlog, in_progress, review, done]
+
+    KanbanPriority:
+      type: string
+      enum: [low, medium, high]
+
+    KanbanFeature:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        workflow:
+          type: string
+        status:
+          $ref: '#/components/schemas/KanbanStatus'
+        priority:
+          $ref: '#/components/schemas/KanbanPriority'
+        order:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    KanbanFeatureUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        workflow:
+          type: string
+        status:
+          $ref: '#/components/schemas/KanbanStatus'
+        priority:
+          $ref: '#/components/schemas/KanbanPriority'
+        order:
+          type: integer
+
+    # User (Staff)
+    UserRole:
+      type: string
+      enum: [admin, preparer, front_desk]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+        role:
+          $ref: '#/components/schemas/UserRole'
+        createdAt:
+          type: string
+          format: date-time
+
+    # Error Response
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+
+    # Pagination
+    PaginationMeta:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        hasMore:
+          type: boolean
+
+    # List responses
+    CustomerList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Customer'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    DocumentList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Document'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    TaxReturnList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaxReturn'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    AppointmentList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Appointment'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    KanbanFeatureList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/KanbanFeature'
+
+security:
+  - BearerAuth: []
+
+paths:
+  # Customers
+  /api/customers:
+    get:
+      summary: List all customers
+      operationId: listCustomers
+      tags:
+        - Customers
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: entityType
+          in: query
+          schema:
+            $ref: '#/components/schemas/Customer/properties/entityType'
+      responses:
+        '200':
+          description: List of customers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerList'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Create a new customer
+      operationId: createCustomer
+      tags:
+        - Customers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerCreate'
+      responses:
+        '201':
+          description: Customer created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/customers/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      summary: Get a customer by ID
+      operationId: getCustomer
+      tags:
+        - Customers
+      responses:
+        '200':
+          description: Customer details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '404':
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Update a customer
+      operationId: updateCustomer
+      tags:
+        - Customers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerUpdate'
+      responses:
+        '200':
+          description: Customer updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '404':
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete a customer
+      operationId: deleteCustomer
+      tags:
+        - Customers
+      responses:
+        '204':
+          description: Customer deleted
+        '404':
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Documents
+  /api/documents:
+    get:
+      summary: List documents
+      operationId: listDocuments
+      tags:
+        - Documents
+      parameters:
+        - name: customerId
+          in: query
+          schema:
+            type: string
+        - name: taxYear
+          in: query
+          schema:
+            type: integer
+        - name: type
+          in: query
+          schema:
+            $ref: '#/components/schemas/DocumentType'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/DocumentStatus'
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of documents
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentList'
+
+    post:
+      summary: Create document record
+      operationId: createDocument
+      tags:
+        - Documents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentUpload'
+      responses:
+        '201':
+          description: Document record created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+
+  /api/documents/upload:
+    post:
+      summary: Upload a document file
+      operationId: uploadDocument
+      tags:
+        - Documents
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - customerId
+                - taxYear
+              properties:
+                file:
+                  type: string
+                  format: binary
+                customerId:
+                  type: string
+                taxYear:
+                  type: integer
+                type:
+                  $ref: '#/components/schemas/DocumentType'
+      responses:
+        '201':
+          description: Document uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+
+  /api/documents/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      summary: Get a document by ID
+      operationId: getDocument
+      tags:
+        - Documents
+      responses:
+        '200':
+          description: Document details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '404':
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete a document
+      operationId: deleteDocument
+      tags:
+        - Documents
+      responses:
+        '204':
+          description: Document deleted
+        '404':
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Tax Returns
+  /api/returns:
+    get:
+      summary: List tax returns
+      operationId: listReturns
+      tags:
+        - Tax Returns
+      parameters:
+        - name: customerId
+          in: query
+          schema:
+            type: string
+        - name: taxYear
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ReturnStatus'
+        - name: assignedPreparer
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of tax returns
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxReturnList'
+
+    post:
+      summary: Create a tax return
+      operationId: createReturn
+      tags:
+        - Tax Returns
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaxReturnCreate'
+      responses:
+        '201':
+          description: Tax return created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxReturn'
+
+  /api/returns/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      summary: Get a tax return by ID
+      operationId: getReturn
+      tags:
+        - Tax Returns
+      responses:
+        '200':
+          description: Tax return details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxReturn'
+        '404':
+          description: Tax return not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/returns/{id}/status:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    patch:
+      summary: Update tax return status
+      operationId: updateReturnStatus
+      tags:
+        - Tax Returns
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaxReturnStatusUpdate'
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxReturn'
+        '404':
+          description: Tax return not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Appointments
+  /api/appointments:
+    get:
+      summary: List appointments
+      operationId: listAppointments
+      tags:
+        - Appointments
+      parameters:
+        - name: customerId
+          in: query
+          schema:
+            type: string
+        - name: assignedTo
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/AppointmentStatus'
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of appointments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentList'
+
+    post:
+      summary: Create an appointment
+      operationId: createAppointment
+      tags:
+        - Appointments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentCreate'
+      responses:
+        '201':
+          description: Appointment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+
+  /api/appointments/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      summary: Get an appointment by ID
+      operationId: getAppointment
+      tags:
+        - Appointments
+      responses:
+        '200':
+          description: Appointment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+        '404':
+          description: Appointment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Update an appointment
+      operationId: updateAppointment
+      tags:
+        - Appointments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scheduledAt:
+                  type: string
+                  format: date-time
+                duration:
+                  type: integer
+                assignedTo:
+                  type: string
+                status:
+                  $ref: '#/components/schemas/AppointmentStatus'
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Appointment updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+
+    delete:
+      summary: Cancel an appointment
+      operationId: deleteAppointment
+      tags:
+        - Appointments
+      responses:
+        '204':
+          description: Appointment cancelled
+        '404':
+          description: Appointment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Communications
+  /api/communications:
+    get:
+      summary: List communications
+      operationId: listCommunications
+      tags:
+        - Communications
+      parameters:
+        - name: customerId
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            $ref: '#/components/schemas/CommunicationType'
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of communications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Communication'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+
+  /api/communications/send:
+    post:
+      summary: Send a communication
+      operationId: sendCommunication
+      tags:
+        - Communications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommunicationSend'
+      responses:
+        '201':
+          description: Communication sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Communication'
+        '400':
+          description: Failed to send
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Kanban
+  /api/kanban:
+    get:
+      summary: List kanban features
+      operationId: listKanbanFeatures
+      tags:
+        - Kanban
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/KanbanStatus'
+        - name: workflow
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of kanban features
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KanbanFeatureList'
+
+    post:
+      summary: Create a kanban feature
+      operationId: createKanbanFeature
+      tags:
+        - Kanban
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                workflow:
+                  type: string
+                status:
+                  $ref: '#/components/schemas/KanbanStatus'
+                priority:
+                  $ref: '#/components/schemas/KanbanPriority'
+      responses:
+        '201':
+          description: Feature created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KanbanFeature'
+
+  /api/kanban/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    patch:
+      summary: Update a kanban feature
+      operationId: updateKanbanFeature
+      tags:
+        - Kanban
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KanbanFeatureUpdate'
+      responses:
+        '200':
+          description: Feature updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KanbanFeature'
+        '404':
+          description: Feature not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete a kanban feature
+      operationId: deleteKanbanFeature
+      tags:
+        - Kanban
+      responses:
+        '204':
+          description: Feature deleted
+        '404':
+          description: Feature not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Users
+  /api/users:
+    get:
+      summary: List staff users
+      operationId: listUsers
+      tags:
+        - Users
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+
+  /api/users/me:
+    get:
+      summary: Get current user
+      operationId: getCurrentUser
+      tags:
+        - Users
+      responses:
+        '200':
+          description: Current user details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Workflows
+  /api/workflows:
+    get:
+      summary: List available workflows
+      operationId: listWorkflows
+      tags:
+        - Workflows
+      responses:
+        '200':
+          description: List of workflows
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        category:
+                          type: string
+                          enum: [front_desk, office_automation, business_clients]
+                        description:
+                          type: string
+
+  /api/workflows/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      summary: Get workflow content
+      operationId: getWorkflow
+      tags:
+        - Workflows
+      responses:
+        '200':
+          description: Workflow content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  category:
+                    type: string
+                  content:
+                    type: string
+                    description: Markdown content
+        '404':
+          description: Workflow not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Health check
+  /api/health:
+    get:
+      summary: Health check
+      operationId: healthCheck
+      tags:
+        - System
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  timestamp:
+                    type: string
+                    format: date-time
