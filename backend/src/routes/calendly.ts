@@ -13,7 +13,7 @@ import { calendlyService } from '../services/calendly.js';
 import { getDb } from '../services/firebase.js';
 import type { AuthenticatedRequest } from '../middleware/auth.js';
 
-export const calendlyRouter = Router();
+export const calendlyRouter: Router = Router();
 
 /**
  * Verify Calendly webhook signature

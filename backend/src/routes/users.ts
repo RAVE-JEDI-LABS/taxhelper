@@ -13,7 +13,7 @@ interface User {
 
 const userService = new FirestoreService<User>('users');
 
-export const usersRouter = Router();
+export const usersRouter: Router = Router();
 
 // Get current user
 usersRouter.get('/me', async (req: AuthenticatedRequest, res, next) => {

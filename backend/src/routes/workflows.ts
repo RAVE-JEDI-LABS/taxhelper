@@ -48,7 +48,7 @@ const workflows: Workflow[] = [
   { id: 'business-dashboard', name: 'Management Dashboard & Reporting', category: 'business_clients', description: 'Business client KPIs' },
 ];
 
-export const workflowsRouter = Router();
+export const workflowsRouter: Router = Router();
 
 // List workflows
 workflowsRouter.get('/', async (_req: AuthenticatedRequest, res, next) => {

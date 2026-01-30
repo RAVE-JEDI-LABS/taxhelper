@@ -31,7 +31,7 @@ interface Customer {
 
 const customerService = new FirestoreService<Customer>('customers');
 
-export const customersRouter = Router();
+export const customersRouter: Router = Router();
 
 // List customers
 customersRouter.get('/', async (req: AuthenticatedRequest, res, next) => {

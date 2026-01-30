@@ -18,7 +18,7 @@ interface Appointment {
 
 const appointmentService = new FirestoreService<Appointment>('appointments');
 
-export const appointmentsRouter = Router();
+export const appointmentsRouter: Router = Router();
 
 // List appointments
 appointmentsRouter.get('/', async (req: AuthenticatedRequest, res, next) => {

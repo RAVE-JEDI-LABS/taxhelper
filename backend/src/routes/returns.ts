@@ -32,7 +32,7 @@ interface TaxReturn {
 
 const returnService = new FirestoreService<TaxReturn>('returns');
 
-export const returnsRouter = Router();
+export const returnsRouter: Router = Router();
 
 // List tax returns
 returnsRouter.get('/', async (req: AuthenticatedRequest, res, next) => {

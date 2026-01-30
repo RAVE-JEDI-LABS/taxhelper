@@ -38,7 +38,7 @@ const upload = multer({
   },
 });
 
-export const documentsRouter = Router();
+export const documentsRouter: Router = Router();
 
 // List documents
 documentsRouter.get('/', async (req: AuthenticatedRequest, res, next) => {

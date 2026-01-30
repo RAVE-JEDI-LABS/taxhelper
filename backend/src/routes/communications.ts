@@ -18,7 +18,7 @@ interface Communication {
 
 const communicationService = new FirestoreService<Communication>('communications');
 
-export const communicationsRouter = Router();
+export const communicationsRouter: Router = Router();
 
 // List communications
 communicationsRouter.get('/', async (req: AuthenticatedRequest, res, next) => {

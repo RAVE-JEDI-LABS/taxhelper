@@ -16,7 +16,7 @@ interface KanbanFeature {
 
 const kanbanService = new FirestoreService<KanbanFeature>('kanban');
 
-export const kanbanRouter = Router();
+export const kanbanRouter: Router = Router();
 
 // List kanban features
 kanbanRouter.get('/', async (req: AuthenticatedRequest, res, next) => {

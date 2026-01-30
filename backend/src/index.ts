@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Express } from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
 import { customersRouter } from './routes/customers.js';
@@ -15,7 +15,7 @@ import { authMiddleware } from './middleware/auth.js';
 import { initializeFirebase } from './services/firebase.js';
 import { setupTwilioWebSocket } from './websocket/twilio-stream.js';
 
-const app = express();
+const app: Express = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 3001;
 

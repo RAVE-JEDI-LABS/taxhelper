@@ -44,7 +44,7 @@ interface StaffMember {
 const callLogService = new FirestoreService<CallLog>('call_logs');
 const customerService = new FirestoreService<{ id?: string; phone?: string }>('customers');
 
-export const twilioRouter = Router();
+export const twilioRouter: Router = Router();
 
 // Middleware to validate Twilio signatures
 const validateSignature = (req: Request, res: Response, next: Function) => {
