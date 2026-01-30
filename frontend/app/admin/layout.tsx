@@ -13,10 +13,12 @@ import {
   LogOut,
   ClipboardList,
   Kanban,
+  Headphones,
 } from 'lucide-react';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/front-desk', label: 'Front Desk', icon: Headphones },
   { href: '/admin/customers', label: 'Customers', icon: Users },
   { href: '/admin/returns', label: 'Tax Returns', icon: FileText },
   { href: '/admin/documents', label: 'Documents', icon: FolderOpen },

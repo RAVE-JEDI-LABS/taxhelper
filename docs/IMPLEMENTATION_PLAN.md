@@ -1,7 +1,7 @@
-# Gordon Ullen CPA - Tax Helper Application
+# Gordon Ulen CPA - Tax Helper Application
 
 ## Project Overview
-Full-stack tax preparation workflow automation system for Gordon Ullen CPA firm.
+Full-stack tax preparation workflow automation system for Gordon Ulen CPA firm.
 
 ## Tech Stack
 - **Frontend**: Next.js (TypeScript)
@@ -68,7 +68,7 @@ Single source of truth that generates:
 ```yaml
 openapi: 3.0.3
 info:
-  title: Gordon Ullen CPA Tax Helper API
+  title: Gordon Ulen CPA Tax Helper API
   version: 1.0.0
 
 components:
@@ -263,6 +263,7 @@ paths:
 - Extracts structured data (uses generated Pydantic models)
 - Auto-classifies document type
 - Stores extracted data via API
+- **Replaces GruntWorx** - saves $0.45/page
 
 ### 2. Client Communication Agent
 - Triggered by status changes
@@ -276,6 +277,14 @@ paths:
 - Flags missing documents
 - Deadline monitoring
 - Extension identification
+
+### 4. Phone AI Agent (Twilio + ElevenLabs)
+- Handles incoming phone calls automatically
+- Classifies caller intent (scheduling, status, documents, billing, new client)
+- Can resolve common requests without human intervention
+- Transfers to human staff when needed
+- Logs all calls to Firestore and syncs to CCH
+- Voicemail transcription and follow-up task creation
 
 ## Workflows to Implement (29 total)
 
@@ -317,9 +326,33 @@ paths:
 ## Key Systems Integration
 - **CCH Wolters Kluwer Practice Management** - Primary for AR/returns
 - **Drake** - Tax preparation software
-- **GruntWorx** - Document scanning/OCR tool integrated with Drake (scans tax documents)
 - **Square** - Payment processing
 - **DocuSign** - E-signatures
+- **Twilio** - Phone system and call routing
+- **ElevenLabs** - AI voice agent for phone call handling
+- **Calendly** - All appointment scheduling (tax prep, drop-off, pick-up, signing, consultation)
+
+## Client Document Intake Split
+
+**Current Reality:**
+- **50% In-Person** - Clients walk in with physical paper documents
+- **50% Portal** - Clients upload documents digitally through client portal
+
+**In-Person Bottleneck:**
+When clients bring physical documents, Gordon Ulen staff must:
+1. Accept documents from client
+2. Manually scan each page using office scanner
+3. Upload scanned images to system
+4. Process through OCR
+5. File physical documents
+
+This scanning step is a significant bottleneck during tax season, especially with high walk-in volume. **Future enhancement:** Streamline the physical-to-digital workflow (mobile scanning, batch processing, etc.)
+
+## GruntWorx Replacement
+Tax Helper's AI OCR Agent replaces GruntWorx functionality:
+- **Problem:** GruntWorx charges $0.45 per page for document scanning/OCR
+- **Solution:** Built-in AI-powered OCR using Claude Vision at no per-page cost
+- **Savings:** ~$2,000+ per tax season for typical CPA firm
 
 ## Implementation Order
 1. Create project structure (packages, frontend, backend, agents, docs)

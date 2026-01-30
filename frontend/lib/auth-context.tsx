@@ -10,12 +10,20 @@ import {
 } from 'firebase/auth';
 import { auth } from './firebase';
 
+// Demo user for testing without Firebase
+const DEMO_USER = {
+  uid: 'demo-user',
+  email: 'demo@gordonulencpa.com',
+  displayName: 'Demo User',
+} as User;
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  demoSignIn: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -23,8 +31,18 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDemo, setIsDemo] = useState(false);
 
   useEffect(() => {
+    // Check for demo session
+    const demoSession = localStorage.getItem('demo-session');
+    if (demoSession === 'true') {
+      setUser(DEMO_USER);
+      setIsDemo(true);
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
@@ -42,11 +60,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await firebaseSignOut(auth);
+    if (isDemo) {
+      localStorage.removeItem('demo-session');
+      setUser(null);
+      setIsDemo(false);
+    } else {
+      await firebaseSignOut(auth);
+    }
+  };
+
+  const demoSignIn = () => {
+    localStorage.setItem('demo-session', 'true');
+    setUser(DEMO_USER);
+    setIsDemo(true);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, demoSignIn }}>
       {children}
     </AuthContext.Provider>
   );

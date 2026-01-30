@@ -12,7 +12,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, demoSignIn } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,6 +30,11 @@ export default function LoginPage() {
     }
   };
 
+  const handleDemoLogin = () => {
+    demoSignIn();
+    router.push('/admin');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full">
@@ -37,7 +42,7 @@ export default function LoginPage() {
           <Link href="/" className="inline-flex items-center gap-2">
             <FileText className="h-10 w-10 text-primary-600" />
             <span className="text-2xl font-bold text-gray-900">
-              Gordon Ullen CPA
+              Gordon Ulen CPA
             </span>
           </Link>
           <h1 className="text-xl text-gray-600 mt-2">Staff Login</h1>
@@ -106,6 +111,23 @@ export default function LoginPage() {
               className="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
               {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">or</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              className="w-full bg-gray-800 text-white py-2 rounded-lg hover:bg-gray-900 font-medium"
+            >
+              Demo Login (No Password)
             </button>
           </form>
         </div>

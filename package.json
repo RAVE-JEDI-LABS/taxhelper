@@ -6,9 +6,14 @@
     "generate": "pnpm --filter @taxhelper/shared generate",
     "generate:types": "pnpm --filter @taxhelper/shared generate:ts",
     "dev:frontend": "pnpm --filter @taxhelper/frontend dev",
-    "build:frontend": "pnpm --filter @taxhelper/frontend build"
+    "dev:backend": "pnpm --filter @taxhelper/backend dev",
+    "dev": "concurrently \"pnpm dev:frontend\" \"pnpm dev:backend\"",
+    "build:frontend": "pnpm --filter @taxhelper/frontend build",
+    "build:backend": "pnpm --filter @taxhelper/backend build"
   },
   "devDependencies": {
+    "concurrently": "^8.2.2",
+    "dotenv-cli": "^7.4.2",
     "openapi-typescript": "^7.0.0"
   }
 }

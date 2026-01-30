@@ -24,7 +24,7 @@ export default function HomePage() {
             <div className="flex items-center gap-3">
               <FileText className="h-8 w-8 text-primary-600" />
               <h1 className="text-2xl font-bold text-gray-900">
-                Gordon Ullen CPA
+                Gordon Ulen CPA
               </h1>
             </div>
             <nav className="flex items-center gap-4">
@@ -77,7 +77,7 @@ export default function HomePage() {
             Tax Helper
           </h2>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Streamlined tax preparation workflow automation for Gordon Ullen CPA firm.
+            Streamlined tax preparation workflow automation for Gordon Ulen CPA firm.
           </p>
           {!user && (
             <div className="flex gap-4 justify-center">
@@ -104,26 +104,31 @@ export default function HomePage() {
           <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">
             Features
           </h3>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
             <FeatureCard
               icon={<Users className="h-8 w-8" />}
               title="Client Management"
               description="Track customers, documents, and tax return status"
             />
             <FeatureCard
+              icon={<Users className="h-8 w-8" />}
+              title="Front Desk Assistant"
+              description="Check-in clients, manage walk-ins, routing sheets, and drop-offs"
+            />
+            <FeatureCard
               icon={<FileText className="h-8 w-8" />}
               title="Document Processing"
-              description="AI-powered OCR for W-2s, 1099s, and more"
+              description="AI-powered OCR - replaces GruntWorx at no per-page cost"
             />
             <FeatureCard
               icon={<Calendar className="h-8 w-8" />}
               title="Appointment Scheduling"
-              description="Manage client appointments and reminders"
+              description="Manage client appointments and automated reminders"
             />
             <FeatureCard
               icon={<ClipboardList className="h-8 w-8" />}
               title="Workflow Automation"
-              description="Standardized procedures for front desk and office"
+              description="29 standardized procedures for front desk and office"
             />
           </div>
         </div>

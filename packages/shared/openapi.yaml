@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Gordon Ullen CPA Tax Helper API
+  title: Gordon Ulen CPA Tax Helper API
   description: Tax preparation workflow automation system
   version: 1.0.0
   contact:

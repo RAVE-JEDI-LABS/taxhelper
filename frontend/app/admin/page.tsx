@@ -100,6 +100,12 @@ export default function AdminDashboard() {
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
         <div className="flex flex-wrap gap-4">
           <Link
+            href="/admin/front-desk"
+            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+          >
+            Front Desk
+          </Link>
+          <Link
             href="/admin/customers?action=new"
             className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
           >

@@ -1,15 +1,17 @@
 # TaxHelper - Project Guide
 
 ## Overview
-Tax preparation workflow automation system for Gordon Ullen CPA, built by RaveJedi Labs.
+Tax preparation workflow automation system for Gordon Ulen CPA, built by RaveJedi Labs.
 
 ## Tech Stack
 - **Frontend**: Next.js 14, React 18, Tailwind CSS
-- **Backend**: Node.js
+- **Backend**: Node.js, Express
 - **Database**: Firestore
 - **Hosting**: Firebase Hosting
 - **Auth**: Firebase Authentication
 - **Storage**: Firebase Storage
+- **Phone System**: Twilio (Voice, WebSocket streaming)
+- **AI Voice Agent**: ElevenLabs Conversational AI
 
 ## Firebase Project
 - **Project ID**: taxhelper-ravejedilabs
@@ -59,7 +61,20 @@ pnpm generate          # Regenerate types from OpenAPI
 firebase deploy        # Deploy all Firebase services
 ```
 
+## Environment Configuration
+**Single `.env` file at project root** - all services read from here.
+```bash
+cp .env.example .env   # Copy template and fill in values
+```
+
+Required secrets:
+- Firebase service account credentials
+- Twilio account SID, auth token, phone number
+- ElevenLabs API key and agent ID
+- Anthropic/OpenAI API keys (for agents)
+
 ## Architecture Principles
 - `packages/shared/openapi.yaml` is the **single source of truth** for all data models
 - No redundant type definitions - everything derives from OpenAPI
 - Frontend and backend import types from `@taxhelper/shared`
+- Single `.env` file at root - no scattered env files in subfolders

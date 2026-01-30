@@ -92,7 +92,7 @@ export default function ClientPortalPage() {
               <FileText className="h-8 w-8 text-primary-600" />
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Client Portal</h1>
-                <p className="text-sm text-gray-500">Gordon Ullen CPA</p>
+                <p className="text-sm text-gray-500">Gordon Ulen CPA</p>
               </div>
             </div>
             <button

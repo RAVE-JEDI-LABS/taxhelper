@@ -154,8 +154,8 @@ Efficiently process client document drop-offs while ensuring all necessary infor
 - Note any missing documents
 
 ### 5. Process Documents
-- Scan documents using GruntWorx (if applicable)
-- Or manually scan to client folder
+- Upload documents to Tax Helper for AI OCR
+- Review extracted data for accuracy
 - Place physical documents in preparer bin
 
 ### 6. Client Communication
@@ -163,11 +163,12 @@ Efficiently process client document drop-offs while ensuring all necessary infor
 - Confirm contact preferences
 - Give receipt copy if requested
 
-## GruntWorx Integration
-If using GruntWorx with Drake:
-1. Scan documents through GruntWorx
-2. Verify OCR data extraction
-3. Import directly into Drake
+## Tax Helper OCR (Replaces GruntWorx)
+Our AI OCR replaces GruntWorx at no per-page cost:
+1. Scan documents with office scanner
+2. Upload to Tax Helper dashboard
+3. AI extracts all data automatically
+4. Review and enter into Drake
 `,
     'payment-processing': `
 # Payment Processing Workflow

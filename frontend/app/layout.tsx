@@ -6,7 +6,7 @@ import { AuthProvider } from '@/lib/auth-context';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Gordon Ullen CPA - Tax Helper',
+  title: 'Gordon Ulen CPA - Tax Helper',
   description: 'Tax preparation workflow automation system',
 };
 
