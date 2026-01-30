@@ -37,3 +37,4 @@ pnpm-debug.log*
 
 # Compiled output
 *.js.map
+service-account.json

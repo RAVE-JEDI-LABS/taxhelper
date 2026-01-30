@@ -23,26 +23,16 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import type { components } from '@taxhelper/shared/generated/typescript/schema';
 
-// Use generated types from OpenAPI schema
-type KanbanFeatureSchema = components['schemas']['KanbanFeature'];
-type KanbanStatus = components['schemas']['KanbanStatus'];
-type KanbanPriority = components['schemas']['KanbanPriority'];
+// Types from OpenAPI schema - all required fields defined there
+type KanbanFeature = components['schemas']['KanbanFeature'];
+type KanbanColumn = components['schemas']['KanbanColumn'];
 
-// Extended type with required fields for UI
-interface KanbanFeature extends KanbanFeatureSchema {
-  id: string;
-  title: string;
-  status: KanbanStatus;
-  priority: KanbanPriority;
-  order: number;
-}
-
-const columns = [
+const columns: KanbanColumn[] = [
   { id: 'backlog', title: 'Backlog', color: 'bg-gray-100' },
   { id: 'in_progress', title: 'In Progress', color: 'bg-blue-100' },
   { id: 'review', title: 'Review', color: 'bg-yellow-100' },
   { id: 'done', title: 'Done', color: 'bg-green-100' },
-] as const;
+];
 
 const priorityColors = {
   low: 'bg-gray-200 text-gray-700',
@@ -242,6 +232,15 @@ export default function KanbanPage() {
           priority: 'medium',
           order: 17,
         },
+        {
+          id: '19',
+          title: 'Import Existing Client Data',
+          description: 'Import existing client records from legacy systems into Firestore database',
+          workflow: 'data_migration',
+          status: 'backlog',
+          priority: 'high',
+          order: 18,
+        },
       ]);
     } finally {
       setLoading(false);
@@ -264,7 +263,7 @@ export default function KanbanPage() {
     // Check if dropped on a column
     const targetColumn = columns.find((c) => c.id === over.id);
     if (targetColumn && activeFeature.status !== targetColumn.id) {
-      const newStatus = targetColumn.id as KanbanFeature['status'];
+      const newStatus = targetColumn.id;
 
       // Optimistic update
       setFeatures((prev) =>
@@ -355,7 +354,7 @@ function KanbanColumn({
   column,
   features,
 }: {
-  column: (typeof columns)[number];
+  column: KanbanColumn;
   features: KanbanFeature[];
 }) {
   const { setNodeRef } = useSortable({ id: column.id });

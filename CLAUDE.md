@@ -78,3 +78,26 @@ Required secrets:
 - No redundant type definitions - everything derives from OpenAPI
 - Frontend and backend import types from `@taxhelper/shared`
 - Single `.env` file at root - no scattered env files in subfolders
+
+## Firebase / Firestore Rules
+- **NO EMULATORS. EVER.** Always connect to production Firestore.
+- Download service account JSON from Firebase Console and set `GOOGLE_APPLICATION_CREDENTIALS` path
+- Set all `NEXT_PUBLIC_FIREBASE_*` values from Firebase Console → Project Settings → Your Apps
+
+## Data Import
+- Legacy client data will need transformation to match new schema
+- Schema mismatches are expected - all imports go through transform functions
+- Key entities: Customer, TaxReturn, Document, Appointment
+- Required fields and enum values must be normalized during import
+
+## Incomplete Features (TODOs)
+Backend integrations not yet wired up:
+- `backend/src/routes/calendly.ts:124,145` - Confirmation/cancellation notifications
+- `backend/src/routes/documents.ts:161` - OCR agent trigger
+- `backend/src/routes/communications.ts:55` - Email/SMS service integration
+- `backend/src/routes/twilio.ts:203-344` - Transcription follow-ups, staff routing
+- `backend/src/routes/returns.ts:135` - Communication agent on status change
+
+Frontend:
+- `frontend/app/admin/documents/page.tsx:67` - Upload modal for customer/year selection
+- Kanban board uses mock data fallback when API unavailable

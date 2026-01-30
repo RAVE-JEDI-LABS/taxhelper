@@ -463,8 +463,29 @@ components:
       type: string
       enum: [low, medium, high]
 
+    KanbanColumn:
+      type: object
+      required:
+        - id
+        - title
+        - color
+      properties:
+        id:
+          $ref: '#/components/schemas/KanbanStatus'
+        title:
+          type: string
+        color:
+          type: string
+          description: Tailwind CSS class for column header background
+
     KanbanFeature:
       type: object
+      required:
+        - id
+        - title
+        - status
+        - priority
+        - order
       properties:
         id:
           type: string
