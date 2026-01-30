@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Minimize2, Maximize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/lib/auth-context';
 
 interface Message {
   id: string;
@@ -11,20 +12,55 @@ interface Message {
   timestamp: Date;
 }
 
+// Generate or get session ID for anonymous chat tracking
+function getSessionId(): string {
+  if (typeof window === 'undefined') return '';
+  let sessionId = localStorage.getItem('chat_session_id');
+  if (!sessionId) {
+    sessionId = `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    localStorage.setItem('chat_session_id', sessionId);
+  }
+  return sessionId;
+}
+
 export function AIAssistant() {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [sessionId] = useState(getSessionId);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       role: 'assistant',
-      content: "Hi! I'm your Tax Helper AI assistant. I can help you with scheduling, client questions, document status, and more. How can I help you today?",
+      content: "Hi! I'm your Tax Helper AI assistant. I can help you with scheduling, questions about your taxes, and more. How can I help you today?",
       timestamp: new Date(),
     },
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Link session to customer when they log in
+  useEffect(() => {
+    async function linkSession() {
+      if (user && sessionId) {
+        try {
+          const token = await user.getIdToken();
+          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/assistant/link-session`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ sessionId }),
+          });
+        } catch (error) {
+          console.error('Failed to link chat session:', error);
+        }
+      }
+    }
+    linkSession();
+  }, [user, sessionId]);
 
   // Draggable state
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -109,6 +145,7 @@ export function AIAssistant() {
         },
         body: JSON.stringify({
           mode,
+          sessionId,
           messages: [...messages, userMessage].map(m => ({
             role: m.role,
             content: m.content,
