@@ -1,15 +1,9 @@
 import { Router } from 'express';
 import { FirestoreService } from '../services/firestore.js';
 import type { AuthenticatedRequest } from '../middleware/auth.js';
+import type { components } from '@taxhelper/shared/generated/typescript/schema';
 
-interface User {
-  id?: string;
-  email: string;
-  displayName?: string;
-  role: 'admin' | 'preparer' | 'front_desk';
-  createdAt?: string;
-  updatedAt?: string;
-}
+type User = components['schemas']['User'];
 
 const userService = new FirestoreService<User>('users');
 
@@ -25,13 +19,13 @@ usersRouter.get('/me', async (req: AuthenticatedRequest, res, next) => {
     // Try to find existing user profile
     let user = await userService.findOne({ id: req.user.uid });
 
-    // If no profile exists, create one
+    // If no profile exists, create one using the Firebase UID
     if (!user) {
-      user = await userService.create({
-        id: req.user.uid,
+      const userData = {
         email: req.user.email || '',
-        role: req.user.role as User['role'] || 'front_desk',
-      });
+        role: (req.user.role as User['role']) || 'front_desk',
+      };
+      user = await userService.createWithId(req.user.uid, userData);
     }
 
     res.json(user);

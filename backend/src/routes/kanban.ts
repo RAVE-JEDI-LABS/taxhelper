@@ -1,18 +1,9 @@
 import { Router } from 'express';
 import { FirestoreService } from '../services/firestore.js';
 import type { AuthenticatedRequest } from '../middleware/auth.js';
+import type { components } from '@taxhelper/shared/generated/typescript/schema';
 
-interface KanbanFeature {
-  id?: string;
-  title: string;
-  description?: string;
-  workflow?: string;
-  status: 'backlog' | 'in_progress' | 'review' | 'done';
-  priority: 'low' | 'medium' | 'high';
-  order: number;
-  createdAt?: string;
-  updatedAt?: string;
-}
+type KanbanFeature = components['schemas']['KanbanFeature'];
 
 const kanbanService = new FirestoreService<KanbanFeature>('kanban');
 

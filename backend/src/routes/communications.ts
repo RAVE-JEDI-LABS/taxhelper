@@ -1,20 +1,9 @@
 import { Router } from 'express';
 import { FirestoreService } from '../services/firestore.js';
 import type { AuthenticatedRequest } from '../middleware/auth.js';
+import type { components } from '@taxhelper/shared/generated/typescript/schema';
 
-interface Communication {
-  id?: string;
-  customerId: string;
-  type: 'email' | 'sms' | 'call';
-  direction: 'inbound' | 'outbound';
-  subject?: string;
-  content: string;
-  sentAt?: string;
-  status: 'sent' | 'delivered' | 'failed';
-  triggeredBy: 'manual' | 'automation' | 'agent';
-  createdAt?: string;
-  updatedAt?: string;
-}
+type Communication = components['schemas']['Communication'];
 
 const communicationService = new FirestoreService<Communication>('communications');
 

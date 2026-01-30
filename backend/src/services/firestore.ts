@@ -29,16 +29,20 @@ export class FirestoreService<T extends { id?: string }> {
 
   async create(data: Omit<T, 'id'>): Promise<T> {
     const id = uuidv4();
+    return this.createWithId(id, data);
+  }
+
+  async createWithId(id: string, data: Omit<T, 'id'>): Promise<T> {
     const timestamp = new Date().toISOString();
     const docData = {
       ...data,
       id,
       createdAt: timestamp,
       updatedAt: timestamp,
-    };
+    } as unknown as T;
 
-    await this.collection.doc(id).set(docData);
-    return docData as T;
+    await this.collection.doc(id).set(docData as FirebaseFirestore.DocumentData);
+    return docData;
   }
 
   async getById(id: string): Promise<T | null> {

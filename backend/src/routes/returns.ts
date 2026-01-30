@@ -1,34 +1,9 @@
 import { Router } from 'express';
 import { FirestoreService } from '../services/firestore.js';
 import type { AuthenticatedRequest } from '../middleware/auth.js';
+import type { components } from '@taxhelper/shared/generated/typescript/schema';
 
-interface TaxReturn {
-  id?: string;
-  customerId: string;
-  taxYear: number;
-  returnType: '1040' | '1120' | '1120s' | '1065' | '990';
-  status: 'intake' | 'documents_pending' | 'documents_complete' | 'in_preparation' |
-          'review_needed' | 'waiting_on_client' | 'ready_for_signing' | 'completed' |
-          'filed' | 'picked_up' | 'extension_needed' | 'extension_filed';
-  assignedPreparer?: string;
-  dueDate?: string;
-  extensionFiled?: boolean;
-  extensionDate?: string;
-  routingSheet?: {
-    dropOffDate?: string;
-    inPersonOrDropOff?: 'in-person' | 'drop-off' | 'portal';
-    missingDocuments?: string[];
-    notes?: string;
-  };
-  payment?: {
-    amount?: number;
-    status?: 'pending' | 'partial' | 'paid';
-    method?: 'cash' | 'check' | 'card' | 'square';
-    paidAt?: string;
-  };
-  createdAt?: string;
-  updatedAt?: string;
-}
+type TaxReturn = components['schemas']['TaxReturn'];
 
 const returnService = new FirestoreService<TaxReturn>('returns');
 

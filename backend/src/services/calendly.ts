@@ -82,7 +82,7 @@ class CalendlyService {
       throw new Error(`Calendly API error: ${response.status} - ${JSON.stringify(error)}`);
     }
 
-    return response.json();
+    return response.json() as Promise<T>;
   }
 
   /**

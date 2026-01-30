@@ -5,16 +5,15 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY pnpm-lock.yaml* ./
 
-# Install dependencies
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+# Install all dependencies (including dev for build)
+RUN npm install
 
 # Copy source
 COPY . .
 
-# Build
-RUN pnpm build
+# Build TypeScript
+RUN npm run build
 
 # Production stage
 FROM node:20-alpine
@@ -23,10 +22,9 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY pnpm-lock.yaml* ./
 
 # Install production dependencies only
-RUN npm install -g pnpm && pnpm install --prod --frozen-lockfile
+RUN npm install --production
 
 # Copy built files
 COPY --from=builder /app/dist ./dist

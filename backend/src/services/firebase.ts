@@ -40,14 +40,14 @@ export function getDb() {
   return db;
 }
 
-export function getAuth() {
+export function getAuth(): admin.auth.Auth {
   if (!auth) {
     throw new Error('Firebase not initialized. Call initializeFirebase() first.');
   }
   return auth;
 }
 
-export function getStorage() {
+export function getStorage(): admin.storage.Storage {
   if (!storage) {
     throw new Error('Firebase not initialized. Call initializeFirebase() first.');
   }

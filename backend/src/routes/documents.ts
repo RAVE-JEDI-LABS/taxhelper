@@ -3,22 +3,9 @@ import multer from 'multer';
 import { FirestoreService } from '../services/firestore.js';
 import { getStorage } from '../services/firebase.js';
 import type { AuthenticatedRequest } from '../middleware/auth.js';
+import type { components } from '@taxhelper/shared/generated/typescript/schema';
 
-interface Document {
-  id?: string;
-  customerId: string;
-  taxYear: number;
-  type?: 'w2' | '1099-r' | '1099-g' | '1099-int' | '1099-div' | '1099-nec' | 'k1' | 'other';
-  fileName: string;
-  fileUrl?: string;
-  uploadedAt?: string;
-  uploadedBy?: string;
-  ocrExtracted?: boolean;
-  extractedData?: Record<string, any>;
-  status?: 'pending' | 'processed' | 'verified';
-  createdAt?: string;
-  updatedAt?: string;
-}
+type Document = components['schemas']['Document'];
 
 const documentService = new FirestoreService<Document>('documents');
 

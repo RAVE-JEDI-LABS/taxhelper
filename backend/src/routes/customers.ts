@@ -1,33 +1,9 @@
 import { Router } from 'express';
 import { FirestoreService } from '../services/firestore.js';
 import type { AuthenticatedRequest } from '../middleware/auth.js';
+import type { components } from '@taxhelper/shared/generated/typescript/schema';
 
-interface Customer {
-  id?: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone?: string;
-  addresses?: Array<{
-    type: 'home' | 'mailing' | 'business';
-    street: string;
-    city: string;
-    state: string;
-    zip: string;
-  }>;
-  entityType?: 'individual' | 's-corp' | 'partnership' | 'c-corp' | 'llc' | 'schedule-c';
-  ein?: string;
-  ssnEncrypted?: string;
-  assignedPreparer?: string;
-  bankingInfo?: {
-    routingNumber: string;
-    accountNumber: string;
-    lastVerified?: string;
-  };
-  portalAccess?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
+type Customer = components['schemas']['Customer'];
 
 const customerService = new FirestoreService<Customer>('customers');
 

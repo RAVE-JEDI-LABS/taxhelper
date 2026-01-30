@@ -1,20 +1,9 @@
 import { Router } from 'express';
 import { FirestoreService } from '../services/firestore.js';
 import type { AuthenticatedRequest } from '../middleware/auth.js';
+import type { components } from '@taxhelper/shared/generated/typescript/schema';
 
-interface Appointment {
-  id?: string;
-  customerId: string;
-  type: 'tax_prep' | 'drop_off' | 'pick_up' | 'signing' | 'consultation';
-  scheduledAt: string;
-  duration: number;
-  assignedTo?: string;
-  status: 'scheduled' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
-  reminderSent?: boolean;
-  notes?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
+type Appointment = components['schemas']['Appointment'];
 
 const appointmentService = new FirestoreService<Appointment>('appointments');
 
