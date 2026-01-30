@@ -92,26 +92,56 @@ export function AIAssistant() {
     setInput('');
     setIsLoading(true);
 
-    // Simulate AI response (replace with actual API call)
-    setTimeout(() => {
-      const responses = [
-        "I can help you with that! Let me check the system...",
-        "Based on our records, I can provide you with that information.",
-        "Would you like me to schedule an appointment for that?",
-        "I've found the client's information. Their return is currently in preparation.",
-        "I can send a reminder to the client about the missing documents.",
-      ];
+    try {
+      // Determine mode based on current path
+      const isCustomerPortal = window.location.pathname.startsWith('/portal');
+      const mode = isCustomerPortal ? 'customer' : 'staff';
+
+      // Get auth token
+      const { auth } = await import('@/lib/firebase');
+      const token = await auth.currentUser?.getIdToken();
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/assistant/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          mode,
+          messages: [...messages, userMessage].map(m => ({
+            role: m.role,
+            content: m.content,
+          })),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      const data = await response.json();
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: responses[Math.floor(Math.random() * responses.length)],
+        content: data.message,
         timestamp: new Date(),
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('AI Assistant error:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: "I'm sorry, I'm having trouble connecting. Please try again in a moment.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   }
 
   if (!isOpen) {

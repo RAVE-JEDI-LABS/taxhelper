@@ -43,8 +43,18 @@ components:
       properties:
         routingNumber:
           type: string
+          writeOnly: true
         accountNumber:
           type: string
+          writeOnly: true
+        routingNumberLast4:
+          type: string
+          readOnly: true
+          description: Last 4 digits for display
+        accountNumberLast4:
+          type: string
+          readOnly: true
+          description: Last 4 digits for display
         lastVerified:
           type: string
           format: date-time
@@ -79,6 +89,24 @@ components:
           type: string
         ssnEncrypted:
           type: string
+          description: AES-256 encrypted SSN. NEVER store plaintext SSN.
+          pattern: '^[A-Za-z0-9+/=]*$'
+        alternatePhone:
+          type: string
+        communicationPreferences:
+          type: object
+          properties:
+            preferredContact:
+              type: string
+              enum: [email, sms, phone]
+            optOutSms:
+              type: boolean
+              default: false
+            optOutEmail:
+              type: boolean
+              default: false
+            timezone:
+              type: string
         assignedPreparer:
           type: string
         bankingInfo:
@@ -155,7 +183,23 @@ components:
     # Document
     DocumentType:
       type: string
-      enum: [w2, 1099-r, 1099-g, 1099-int, 1099-div, 1099-nec, k1, other]
+      enum:
+        - w2
+        - 1099-r
+        - 1099-g
+        - 1099-int
+        - 1099-div
+        - 1099-nec
+        - 1099-misc
+        - 1098
+        - 1095-a
+        - 1095-b
+        - 1095-c
+        - k1
+        - schedule-c
+        - w9
+        - id
+        - other
 
     DocumentStatus:
       type: string
@@ -176,6 +220,19 @@ components:
           type: string
         fileUrl:
           type: string
+        storagePath:
+          type: string
+          description: Firebase Storage path
+        contentType:
+          type: string
+          description: MIME type of the document
+        fileSize:
+          type: integer
+          description: File size in bytes
+        signedUrlExpiresAt:
+          type: string
+          format: date-time
+          description: When the signed URL expires
         uploadedAt:
           type: string
           format: date-time
@@ -184,11 +241,21 @@ components:
         ocrExtracted:
           type: boolean
           default: false
+        ocrJobId:
+          type: string
+          description: ID of the OCR processing job
+        ocrCompletedAt:
+          type: string
+          format: date-time
+          description: When OCR processing completed
         extractedData:
           type: object
           additionalProperties: true
         status:
           $ref: '#/components/schemas/DocumentStatus'
+        updatedAt:
+          type: string
+          format: date-time
 
     DocumentUpload:
       type: object
@@ -267,6 +334,20 @@ components:
         - extension_needed
         - extension_filed
 
+    # State Filing (for multi-state returns)
+    StateFiling:
+      type: object
+      properties:
+        state:
+          type: string
+          description: 2-letter state code
+          minLength: 2
+          maxLength: 2
+        status:
+          $ref: '#/components/schemas/ReturnStatus'
+        filingId:
+          type: string
+
     TaxReturn:
       type: object
       properties:
@@ -280,6 +361,11 @@ components:
           $ref: '#/components/schemas/ReturnType'
         status:
           $ref: '#/components/schemas/ReturnStatus'
+        states:
+          type: array
+          items:
+            $ref: '#/components/schemas/StateFiling'
+          description: Multi-state filing information
         assignedPreparer:
           type: string
         dueDate:
@@ -336,11 +422,23 @@ components:
     # Appointment
     AppointmentType:
       type: string
-      enum: [tax_prep, drop_off, pick_up, signing, consultation]
+      enum: [tax_prep, drop_off, pick_up, signing, consultation, phone_consultation, video_consultation]
 
     AppointmentStatus:
       type: string
       enum: [scheduled, confirmed, completed, cancelled, no_show]
+
+    AppointmentSource:
+      type: string
+      enum: [manual, calendly, phone]
+
+    AppointmentLocation:
+      type: object
+      properties:
+        type:
+          type: string
+        location:
+          type: string
 
     Appointment:
       type: object
@@ -349,11 +447,29 @@ components:
           type: string
         customerId:
           type: string
+        customerName:
+          type: string
+          description: Denormalized customer name from Calendly
+        customerEmail:
+          type: string
+          format: email
+          description: Denormalized email from Calendly invitee
         type:
           $ref: '#/components/schemas/AppointmentType'
+        calendlyEventUri:
+          type: string
+          description: Full Calendly event URI for API references
+        source:
+          $ref: '#/components/schemas/AppointmentSource'
+        location:
+          $ref: '#/components/schemas/AppointmentLocation'
         scheduledAt:
           type: string
           format: date-time
+        endAt:
+          type: string
+          format: date-time
+          description: Appointment end time
         duration:
           type: integer
           description: Duration in minutes
@@ -366,6 +482,10 @@ components:
           default: false
         notes:
           type: string
+        canceledAt:
+          type: string
+          format: date-time
+          description: When appointment was canceled
         createdAt:
           type: string
           format: date-time
@@ -427,13 +547,29 @@ components:
           type: string
         content:
           type: string
+        phone:
+          type: string
+          description: Phone number for SMS/call communications
+        callLogId:
+          type: string
+          description: Reference to CallLog for call type communications
         sentAt:
           type: string
           format: date-time
+        readAt:
+          type: string
+          format: date-time
+          description: When the communication was read by recipient
         status:
           $ref: '#/components/schemas/CommunicationStatus'
         triggeredBy:
           $ref: '#/components/schemas/CommunicationTrigger'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
 
     CommunicationSend:
       type: object
@@ -524,6 +660,126 @@ components:
         order:
           type: integer
 
+    # Call Log
+    CallLogDirection:
+      type: string
+      enum: [inbound, outbound]
+
+    CallLogStatus:
+      type: string
+      enum: [in-progress, completed, failed, no-answer, busy]
+
+    CallLogResolution:
+      type: string
+      enum: [ai-resolved, transferred, voicemail, abandoned]
+
+    CallLog:
+      type: object
+      required:
+        - callSid
+        - from
+        - to
+        - startTime
+      properties:
+        id:
+          type: string
+        callSid:
+          type: string
+          description: Twilio Call SID
+        from:
+          type: string
+          description: Caller phone number
+        to:
+          type: string
+          description: Called phone number
+        direction:
+          $ref: '#/components/schemas/CallLogDirection'
+        status:
+          $ref: '#/components/schemas/CallLogStatus'
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        duration:
+          type: integer
+          description: Call duration in seconds
+        intent:
+          type: string
+          description: Detected caller intent
+        transcript:
+          type: array
+          items:
+            type: string
+          description: Array of transcript lines
+        transcriptSummary:
+          type: string
+          description: AI-generated summary of the call
+        resolution:
+          $ref: '#/components/schemas/CallLogResolution'
+        recordingUrl:
+          type: string
+          description: URL to call recording
+        customerId:
+          type: string
+          description: Reference to Customer if identified
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CallLogCreate:
+      type: object
+      required:
+        - callSid
+        - from
+        - to
+        - startTime
+      properties:
+        callSid:
+          type: string
+        from:
+          type: string
+        to:
+          type: string
+        direction:
+          $ref: '#/components/schemas/CallLogDirection'
+        status:
+          $ref: '#/components/schemas/CallLogStatus'
+        startTime:
+          type: string
+          format: date-time
+        customerId:
+          type: string
+
+    CallLogUpdate:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/CallLogStatus'
+        endTime:
+          type: string
+          format: date-time
+        duration:
+          type: integer
+        intent:
+          type: string
+        transcript:
+          type: array
+          items:
+            type: string
+        transcriptSummary:
+          type: string
+        resolution:
+          $ref: '#/components/schemas/CallLogResolution'
+        recordingUrl:
+          type: string
+        customerId:
+          type: string
+
     # User (Staff)
     UserRole:
       type: string
@@ -539,8 +795,20 @@ components:
           format: email
         displayName:
           type: string
+        phone:
+          type: string
         role:
           $ref: '#/components/schemas/UserRole'
+        available:
+          type: boolean
+          default: true
+        lastLoginAt:
+          type: string
+          format: date-time
+        permissions:
+          type: array
+          items:
+            type: string
         createdAt:
           type: string
           format: date-time
@@ -621,6 +889,16 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/KanbanFeature'
+
+    CallLogList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CallLog'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
 
 security:
   - BearerAuth: []
@@ -1328,6 +1606,150 @@ paths:
           description: Feature deleted
         '404':
           description: Feature not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Call Logs
+  /api/call-logs:
+    get:
+      summary: List call logs
+      operationId: listCallLogs
+      tags:
+        - Call Logs
+      parameters:
+        - name: customerId
+          in: query
+          schema:
+            type: string
+        - name: direction
+          in: query
+          schema:
+            $ref: '#/components/schemas/CallLogDirection'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/CallLogStatus'
+        - name: resolution
+          in: query
+          schema:
+            $ref: '#/components/schemas/CallLogResolution'
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of call logs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallLogList'
+
+    post:
+      summary: Create a call log
+      operationId: createCallLog
+      tags:
+        - Call Logs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CallLogCreate'
+      responses:
+        '201':
+          description: Call log created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallLog'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/call-logs/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      summary: Get a call log by ID
+      operationId: getCallLog
+      tags:
+        - Call Logs
+      responses:
+        '200':
+          description: Call log details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallLog'
+        '404':
+          description: Call log not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Update a call log
+      operationId: updateCallLog
+      tags:
+        - Call Logs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CallLogUpdate'
+      responses:
+        '200':
+          description: Call log updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallLog'
+        '404':
+          description: Call log not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete a call log
+      operationId: deleteCallLog
+      tags:
+        - Call Logs
+      responses:
+        '204':
+          description: Call log deleted
+        '404':
+          description: Call log not found
           content:
             application/json:
               schema:

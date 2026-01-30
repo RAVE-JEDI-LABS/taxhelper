@@ -50,7 +50,7 @@ export class FirestoreService<T extends { id?: string }> {
     if (!doc.exists) {
       return null;
     }
-    return doc.data() as T;
+    return { ...doc.data(), id: doc.id } as T;
   }
 
   async update(id: string, data: Partial<T>): Promise<T | null> {
@@ -100,7 +100,7 @@ export class FirestoreService<T extends { id?: string }> {
     query = query.orderBy('createdAt', 'desc').limit(limit).offset((page - 1) * limit);
 
     const snapshot = await query.get();
-    const data = snapshot.docs.map((doc) => doc.data() as T);
+    const data = snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id } as T));
 
     return {
       data,
@@ -129,6 +129,7 @@ export class FirestoreService<T extends { id?: string }> {
       return null;
     }
 
-    return snapshot.docs[0].data() as T;
+    const doc = snapshot.docs[0];
+    return { ...doc.data(), id: doc.id } as T;
   }
 }

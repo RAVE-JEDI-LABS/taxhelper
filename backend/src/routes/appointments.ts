@@ -30,6 +30,7 @@ appointmentsRouter.get('/', async (req: AuthenticatedRequest, res, next) => {
       const end = endDate ? new Date(endDate as string) : new Date('2100-01-01');
 
       result.data = result.data.filter((apt) => {
+        if (!apt.scheduledAt) return false;
         const aptDate = new Date(apt.scheduledAt);
         return aptDate >= start && aptDate <= end;
       });

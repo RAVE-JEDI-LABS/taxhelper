@@ -24,6 +24,7 @@ usersRouter.get('/me', async (req: AuthenticatedRequest, res, next) => {
       const userData = {
         email: req.user.email || '',
         role: (req.user.role as User['role']) || 'front_desk',
+        available: true,
       };
       user = await userService.createWithId(req.user.uid, userData);
     }

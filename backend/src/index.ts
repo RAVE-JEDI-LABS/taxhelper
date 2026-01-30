@@ -11,6 +11,7 @@ import { workflowsRouter } from './routes/workflows.js';
 import { usersRouter } from './routes/users.js';
 import { twilioRouter } from './routes/twilio.js';
 import { calendlyRouter } from './routes/calendly.js';
+import { assistantRouter } from './routes/assistant.js';
 import { authMiddleware } from './middleware/auth.js';
 import { initializeFirebase } from './services/firebase.js';
 import { setupTwilioWebSocket } from './websocket/twilio-stream.js';
@@ -56,6 +57,7 @@ app.use('/api/communications', authMiddleware, communicationsRouter);
 app.use('/api/kanban', authMiddleware, kanbanRouter);
 app.use('/api/workflows', authMiddleware, workflowsRouter);
 app.use('/api/users', authMiddleware, usersRouter);
+app.use('/api/assistant', authMiddleware, assistantRouter);
 
 // Error handling
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

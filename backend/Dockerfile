@@ -1,33 +1,50 @@
-# Build stage
+# Build stage - build from monorepo root context
 FROM node:20-alpine AS builder
+
+# Install bash and pnpm
+RUN apk add --no-cache bash && npm install -g pnpm
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy workspace config and lock file
+COPY pnpm-workspace.yaml ./
+COPY pnpm-lock.yaml ./
+COPY package.json ./
 
-# Install all dependencies (including dev for build)
-RUN npm install
+# Copy the packages we need
+COPY packages/shared ./packages/shared
+COPY backend ./backend
 
-# Copy source
-COPY . .
+# Install dependencies
+RUN pnpm install --frozen-lockfile
 
-# Build TypeScript
-RUN npm run build
+# Build shared types first, then backend
+WORKDIR /app/packages/shared
+RUN pnpm build 2>/dev/null || echo "No build script in shared"
+
+WORKDIR /app/backend
+RUN pnpm build
 
 # Production stage
 FROM node:20-alpine
 
+RUN npm install -g pnpm
+
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy workspace config
+COPY pnpm-workspace.yaml ./
+COPY pnpm-lock.yaml ./
+COPY package.json ./
+
+# Copy built packages
+COPY --from=builder /app/packages/shared ./packages/shared
+COPY --from=builder /app/backend/package.json ./backend/
+COPY --from=builder /app/backend/dist ./backend/dist
 
 # Install production dependencies only
-RUN npm install --production
-
-# Copy built files
-COPY --from=builder /app/dist ./dist
+WORKDIR /app/backend
+RUN pnpm install --prod --frozen-lockfile
 
 # Set environment
 ENV NODE_ENV=production
