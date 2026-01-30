@@ -43,6 +43,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    // Only subscribe to auth changes if auth is available (client-side only)
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
@@ -52,10 +58,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    if (!auth) throw new Error('Auth not available');
     await signInWithEmailAndPassword(auth, email, password);
   };
 
   const signUp = async (email: string, password: string) => {
+    if (!auth) throw new Error('Auth not available');
     await createUserWithEmailAndPassword(auth, email, password);
   };
 
@@ -65,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setIsDemo(false);
     } else {
+      if (!auth) throw new Error('Auth not available');
       await firebaseSignOut(auth);
     }
   };

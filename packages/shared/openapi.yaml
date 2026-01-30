@@ -590,6 +590,80 @@ components:
           $ref: '#/components/schemas/CommunicationTrigger'
           default: manual
 
+    # SMS & Chat Logs
+    SmsLog:
+      type: object
+      properties:
+        id:
+          type: string
+        messageSid:
+          type: string
+          description: Twilio Message SID
+        from:
+          type: string
+        to:
+          type: string
+        body:
+          type: string
+        direction:
+          type: string
+          enum: [inbound, outbound]
+        status:
+          type: string
+          enum: [received, sent, delivered, failed]
+        customerId:
+          type: string
+        customerName:
+          type: string
+          description: Cached customer name for display
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ChatMessage:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    ChatLog:
+      type: object
+      description: Unified conversation log across web chat and SMS
+      properties:
+        id:
+          type: string
+        sessionId:
+          type: string
+          description: Browser session ID for anonymous users
+        customerId:
+          type: string
+          description: Linked after user signs in
+        customerPhone:
+          type: string
+          description: Phone number for SMS channel
+        channel:
+          type: string
+          enum: [web, sms]
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
     # Kanban
     KanbanStatus:
       type: string

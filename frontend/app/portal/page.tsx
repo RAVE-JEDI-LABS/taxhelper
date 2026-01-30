@@ -65,7 +65,7 @@ export default function ClientPortalPage() {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push('/login');
+      router.push('/portal/login');
     }
   }, [user, authLoading, router]);
 
@@ -135,7 +135,7 @@ export default function ClientPortalPage() {
   }
 
   // Get unique tax years from returns
-  const taxYears = [...new Set(returns.map(r => r.taxYear))].sort((a, b) => b - a);
+  const taxYears = Array.from(new Set(returns.map(r => r.taxYear))).sort((a, b) => b - a);
   const selectedReturns = selectedYear
     ? returns.filter(r => r.taxYear === selectedYear)
     : returns;
@@ -194,14 +194,14 @@ export default function ClientPortalPage() {
             </div>
             <div className="flex gap-3">
               <a
-                href="tel:+15555551234"
+                href="tel:+19783727050"
                 className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700"
               >
                 <Phone className="h-4 w-4" />
                 Call Office
               </a>
               <a
-                href="mailto:gordon@ulen-cpa.com"
+                href="mailto:gulen@gwucpa.com"
                 className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700"
               >
                 <Mail className="h-4 w-4" />
@@ -425,7 +425,7 @@ export default function ClientPortalPage() {
 
         {/* Help footer */}
         <div className="mt-8 text-center text-sm text-gray-500">
-          <p>Need help? Call us at <a href="tel:+15555551234" className="text-primary-600 hover:underline">(555) 555-1234</a></p>
+          <p>Need help? Call us at <a href="tel:+19783727050" className="text-primary-600 hover:underline">(978) 372-7050</a></p>
           <p className="mt-1">Office hours: Mon-Fri 9am-5pm, Sat 9am-12pm (during tax season)</p>
         </div>
       </main>

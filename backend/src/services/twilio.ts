@@ -121,3 +121,13 @@ export async function updateCall(callSid: string, twiml: string): Promise<void> 
 export async function getCallDetails(callSid: string) {
   return twilioClient.calls(callSid).fetch();
 }
+
+export async function sendSms(to: string, body: string): Promise<string> {
+  const message = await twilioClient.messages.create({
+    to,
+    from: twilioPhoneNumber,
+    body,
+    statusCallback: `${process.env.API_BASE_URL}/api/twilio/sms/status`,
+  });
+  return message.sid;
+}

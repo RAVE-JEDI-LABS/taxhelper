@@ -99,7 +99,7 @@ export function AIAssistant() {
 
       // Get auth token
       const { auth } = await import('@/lib/firebase');
-      const token = await auth.currentUser?.getIdToken();
+      const token = auth ? await auth.currentUser?.getIdToken() : undefined;
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/assistant/chat`, {
         method: 'POST',

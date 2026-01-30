@@ -17,7 +17,7 @@ export async function apiClient<T>(
     ...customHeaders,
   };
 
-  if (requireAuth) {
+  if (requireAuth && auth) {
     const user = auth.currentUser;
     if (user) {
       const token = await user.getIdToken();
@@ -68,7 +68,7 @@ export const api = {
       formData.append('taxYear', taxYear.toString());
       if (type) formData.append('type', type);
 
-      const user = auth.currentUser;
+      const user = auth?.currentUser;
       const headers: HeadersInit = {};
       if (user) {
         const token = await user.getIdToken();
