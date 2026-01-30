@@ -5,8 +5,9 @@
   "main": "generated/typescript/schema.ts",
   "types": "generated/typescript/schema.ts",
   "scripts": {
-    "generate": "pnpm run generate:ts",
+    "generate": "pnpm run generate:ts && pnpm run generate:python",
     "generate:ts": "openapi-typescript openapi.yaml -o generated/typescript/schema.ts",
+    "generate:python": "datamodel-codegen --input openapi.yaml --output generated/python/models.py --input-file-type openapi --output-model-type pydantic_v2.BaseModel",
     "validate": "npx @redocly/cli lint openapi.yaml"
   },
   "devDependencies": {

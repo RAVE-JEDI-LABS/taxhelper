@@ -1,5 +1,18 @@
 # Incoming Phone Call Workflow
 
+## Status: IN PROGRESS
+
+**Dependencies Ready:**
+- Calendly Integration ✓ (appointment scheduling API ready)
+
+**Still Needed:**
+- Twilio phone number setup
+- ElevenLabs Conversational AI agent configuration
+- WebSocket streaming implementation
+- Call logging to Firestore
+
+---
+
 ## Purpose
 Handle inbound client calls professionally and efficiently using Twilio for telephony and ElevenLabs AI agent for initial call handling. Ensure all information is captured and appropriate action is taken.
 

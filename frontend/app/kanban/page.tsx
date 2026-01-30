@@ -18,17 +18,22 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { api } from '@/lib/api/client';
-import { Plus, GripVertical, MoreHorizontal, FileText } from 'lucide-react';
+import { Plus, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import type { components } from '@taxhelper/shared/generated/typescript/schema';
 
-interface KanbanFeature {
+// Use generated types from OpenAPI schema
+type KanbanFeatureSchema = components['schemas']['KanbanFeature'];
+type KanbanStatus = components['schemas']['KanbanStatus'];
+type KanbanPriority = components['schemas']['KanbanPriority'];
+
+// Extended type with required fields for UI
+interface KanbanFeature extends KanbanFeatureSchema {
   id: string;
   title: string;
-  description?: string;
-  workflow?: string;
-  status: 'backlog' | 'in_progress' | 'review' | 'done';
-  priority: 'low' | 'medium' | 'high';
+  status: KanbanStatus;
+  priority: KanbanPriority;
   order: number;
 }
 
@@ -71,77 +76,171 @@ export default function KanbanPage() {
       console.error('Failed to fetch features:', error);
       // Use mock data for demo
       setFeatures([
+        // COMPLETED FEATURES
         {
           id: '1',
-          title: 'Document OCR Agent',
-          description: 'AI-powered OCR for W-2s and 1099s',
-          workflow: 'document_scanning',
-          status: 'in_progress',
+          title: 'Admin Dashboard',
+          description: 'Main staff dashboard with navigation to all features',
+          workflow: 'core',
+          status: 'done',
           priority: 'high',
           order: 0,
         },
         {
           id: '2',
-          title: 'Client Communication Automation',
-          description: 'Automated email/SMS for status updates',
-          workflow: 'client_communication',
-          status: 'backlog',
-          priority: 'medium',
+          title: 'Demo Login System',
+          description: 'Firebase Auth with demo bypass for development/demos',
+          workflow: 'core',
+          status: 'done',
+          priority: 'high',
           order: 1,
         },
         {
           id: '3',
-          title: 'Payment Processing Integration',
-          description: 'Square integration for payments',
-          workflow: 'payment_processing',
-          status: 'backlog',
-          priority: 'medium',
+          title: 'Customer Management',
+          description: 'CRUD for client records with search and filtering',
+          workflow: 'client_management',
+          status: 'done',
+          priority: 'high',
           order: 2,
         },
         {
           id: '4',
-          title: 'GruntWorx Replacement',
-          description: 'AI OCR to replace GruntWorx ($0.45/page) - use Claude Vision',
-          workflow: 'document_scanning',
-          status: 'in_progress',
+          title: 'Tax Returns Tracking',
+          description: 'Track return status from intake to filed',
+          workflow: 'return_tracking',
+          status: 'done',
           priority: 'high',
           order: 3,
         },
         {
           id: '5',
+          title: 'Document Management',
+          description: 'Upload, view, and manage client documents',
+          workflow: 'document_scanning',
+          status: 'done',
+          priority: 'high',
+          order: 4,
+        },
+        {
+          id: '6',
+          title: 'Front Desk Assistant',
+          description: 'Quick actions for check-in, drop-off, pick-up workflows',
+          workflow: 'front_desk',
+          status: 'done',
+          priority: 'high',
+          order: 5,
+        },
+        {
+          id: '7',
+          title: 'Client Portal',
+          description: 'Client-facing portal for document upload and status check',
+          workflow: 'client_portal',
+          status: 'done',
+          priority: 'medium',
+          order: 6,
+        },
+        {
+          id: '8',
+          title: 'Workflow Documentation',
+          description: '10 workflow docs with viewer in admin dashboard',
+          workflow: 'documentation',
+          status: 'done',
+          priority: 'medium',
+          order: 7,
+        },
+        {
+          id: '9',
+          title: 'Backend API',
+          description: 'Express API with 10 route modules + Firestore',
+          workflow: 'core',
+          status: 'done',
+          priority: 'high',
+          order: 8,
+        },
+        {
+          id: '10',
+          title: 'OpenAPI Schema',
+          description: 'Single source of truth for types - auto-generates TS',
+          workflow: 'core',
+          status: 'done',
+          priority: 'high',
+          order: 9,
+        },
+        {
+          id: '11',
+          title: 'Calendly Integration',
+          description: 'All appointment scheduling via Calendly - webhooks, API, sync',
+          workflow: 'appointment_management',
+          status: 'done',
+          priority: 'high',
+          order: 10,
+        },
+        // IN PROGRESS
+        {
+          id: '12',
+          title: 'Document OCR Agent',
+          description: 'AI-powered OCR for W-2s and 1099s using Claude Vision',
+          workflow: 'document_scanning',
+          status: 'in_progress',
+          priority: 'high',
+          order: 11,
+        },
+        {
+          id: '13',
+          title: 'GruntWorx Replacement',
+          description: 'AI OCR to replace GruntWorx ($0.45/page) - saves ~$450/1000 pages',
+          workflow: 'document_scanning',
+          status: 'in_progress',
+          priority: 'high',
+          order: 12,
+        },
+        // REVIEW
+        {
+          id: '14',
           title: 'CCH Software Logging',
           description: 'Automated CCH practice management logging',
           workflow: 'cch_logging',
           status: 'review',
           priority: 'low',
-          order: 4,
+          order: 13,
         },
+        // BACKLOG
         {
-          id: '6',
-          title: 'Physical Document Scanning Bottleneck',
-          description: '50% of clients bring physical paper - streamline scan workflow',
-          workflow: 'document_scanning',
-          status: 'backlog',
-          priority: 'medium',
-          order: 5,
-        },
-        {
-          id: '7',
+          id: '15',
           title: 'Twilio + ElevenLabs Phone AI',
           description: 'AI agent handles incoming calls - scheduling, status, transfers',
           workflow: 'incoming_call',
           status: 'backlog',
           priority: 'high',
-          order: 6,
+          order: 14,
         },
         {
-          id: '8',
-          title: 'Calendly Integration',
-          description: 'All appointment scheduling via Calendly - webhooks, API, sync',
-          workflow: 'appointment_management',
-          status: 'in_progress',
-          priority: 'high',
-          order: 7,
+          id: '16',
+          title: 'Client Communication Automation',
+          description: 'Automated email/SMS for status updates',
+          workflow: 'client_communication',
+          status: 'backlog',
+          priority: 'medium',
+          order: 15,
+        },
+        {
+          id: '17',
+          title: 'Payment Processing Integration',
+          description: 'Square integration for payments',
+          workflow: 'payment_processing',
+          status: 'backlog',
+          priority: 'medium',
+          order: 16,
+        },
+        {
+          id: '18',
+          title: 'Physical Document Scanning Bottleneck',
+          description: '50% of clients bring physical paper - streamline scan workflow',
+          workflow: 'document_scanning',
+          status: 'backlog',
+          priority: 'medium',
+          order: 17,
         },
       ]);
     } finally {
@@ -305,9 +404,16 @@ function SortableCard({ feature }: { feature: KanbanFeature }) {
     transition,
   };
 
+  // Apply listeners to entire card for full-card dragging
   return (
-    <div ref={setNodeRef} style={style} {...attributes}>
-      <KanbanCard feature={feature} isDragging={isDragging} dragHandleProps={listeners} />
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="cursor-grab active:cursor-grabbing"
+    >
+      <KanbanCard feature={feature} isDragging={isDragging} />
     </div>
   );
 }
@@ -315,23 +421,18 @@ function SortableCard({ feature }: { feature: KanbanFeature }) {
 function KanbanCard({
   feature,
   isDragging,
-  dragHandleProps,
 }: {
   feature: KanbanFeature;
   isDragging?: boolean;
-  dragHandleProps?: any;
 }) {
   return (
     <div
       className={cn(
-        'bg-white rounded-lg shadow-sm border p-3 cursor-pointer hover:shadow-md transition-shadow',
+        'bg-white rounded-lg shadow-sm border p-3 hover:shadow-md transition-shadow select-none',
         isDragging && 'opacity-50 rotate-2 shadow-lg'
       )}
     >
       <div className="flex items-start gap-2">
-        <div {...dragHandleProps} className="mt-1 cursor-grab active:cursor-grabbing">
-          <GripVertical className="h-4 w-4 text-gray-400" />
-        </div>
         <div className="flex-1 min-w-0">
           <h3 className="font-medium text-gray-900 text-sm">{feature.title}</h3>
           {feature.description && (
@@ -350,14 +451,11 @@ function KanbanCard({
             </span>
             {feature.workflow && (
               <span className="text-xs text-gray-400">
-                {feature.workflow.replace('_', ' ')}
+                {feature.workflow.replace(/_/g, ' ')}
               </span>
             )}
           </div>
         </div>
-        <button className="text-gray-400 hover:text-gray-600">
-          <MoreHorizontal className="h-4 w-4" />
-        </button>
       </div>
     </div>
   );

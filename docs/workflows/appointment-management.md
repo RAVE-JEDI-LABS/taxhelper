@@ -1,5 +1,21 @@
 # Appointment Scheduling & Management
 
+## Status: IMPLEMENTED ✓
+
+**Implementation Complete:**
+- Backend Calendly service (`backend/src/services/calendly.ts`)
+- Webhook endpoints for booking/cancellation sync (`backend/src/routes/calendly.ts`)
+- Firestore appointment sync
+- Admin dashboard appointment page with quick-book cards
+- Environment variables configured
+
+**Remaining Setup:**
+- Add Calendly API key to `.env`
+- Configure webhook URL in Calendly dashboard
+- Set up event types in Calendly
+
+---
+
 ## Purpose
 Manage all client appointments using Calendly as the scheduling platform, with automatic sync to Tax Helper for visibility and integration with other systems.
 
