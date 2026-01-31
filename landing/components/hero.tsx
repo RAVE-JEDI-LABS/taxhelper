@@ -75,7 +75,7 @@ export function Hero() {
           </div>
 
           {/* Hero Image */}
-          <div className="order-1 lg:order-2 flex flex-col items-center lg:items-end">
+          <div className="order-1 lg:order-2 flex flex-col items-center">
             {/* Main Image with Gold Frame */}
             <div
               className="relative w-36 md:w-56 lg:w-64 aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border-4 border-accent bg-primary-800"
@@ -89,8 +89,8 @@ export function Hero() {
               />
             </div>
 
-            {/* Name badge - below image, not overlapping */}
-            <div className="mt-4 bg-accent px-6 py-3 rounded-xl shadow-xl border-2 border-accent-300 text-center">
+            {/* Name badge - below image, centered */}
+            <div className="mt-4 bg-accent px-6 py-3 rounded-xl shadow-xl border-2 border-accent-300 text-center mx-auto">
               <p className="font-bold text-primary-900 text-lg">Gordon W. Ulen</p>
               <p className="text-xs text-primary-800 font-medium">Certified Public Accountant</p>
             </div>
