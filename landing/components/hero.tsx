@@ -79,16 +79,16 @@ export function Hero() {
             <div className="relative">
               {/* Main Image with Gold Frame */}
               <div className="relative w-72 md:w-96 lg:w-[420px] aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border-4 border-accent bg-primary-800">
-                <Image
+                <img
                   src="/images/gordon-ulen.jpg"
                   alt="Gordon W. Ulen, CPA"
-                  width={840}
-                  height={1120}
-                  className="w-full h-full object-cover object-center rounded-lg"
-                  quality={100}
-                  priority
-                  sizes="(max-width: 768px) 288px, (max-width: 1024px) 384px, 420px"
-                  unoptimized={false}
+                  className="w-full h-full object-contain object-center rounded-lg"
+                  style={{
+                    imageRendering: 'high-quality',
+                    imageRendering: '-webkit-optimize-contrast',
+                    imageRendering: 'crisp-edges',
+                    imageRendering: 'pixelated',
+                  }}
                 />
                 {/* Gradient overlay for better text contrast on badge */}
                 <div className="absolute inset-0 bg-gradient-to-t from-primary-900/20 via-transparent to-transparent pointer-events-none" />
