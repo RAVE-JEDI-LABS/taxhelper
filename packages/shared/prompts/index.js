@@ -301,9 +301,7 @@ export const VOICE_PROMPT = `You are a professional AI receptionist for Gordon U
 // PROMPT BUILDER
 // =============================================================================
 
-export type AssistantMode = 'visitor' | 'customer' | 'staff' | 'sms' | 'voice';
-
-const PERSONA_MAP: Record<AssistantMode, string> = {
+const PERSONA_MAP = {
   visitor: VISITOR_PROMPT,
   customer: CUSTOMER_PROMPT,
   staff: STAFF_PROMPT,
@@ -314,9 +312,12 @@ const PERSONA_MAP: Record<AssistantMode, string> = {
 /**
  * Build a complete system prompt for a given mode
  * Combines: business info + persona + security rules
+ * @param {string} mode - 'visitor' | 'customer' | 'staff' | 'sms' | 'voice'
+ * @param {string} [additionalContext]
+ * @returns {string}
  */
-export function buildSystemPrompt(mode: AssistantMode, additionalContext?: string): string {
-  const parts: string[] = [
+export function buildSystemPrompt(mode, additionalContext) {
+  const parts = [
     BUSINESS_INFO,
     PERSONA_MAP[mode],
     SECURITY_RULES,
@@ -331,7 +332,9 @@ export function buildSystemPrompt(mode: AssistantMode, additionalContext?: strin
 
 /**
  * Get just the persona prompt without context
+ * @param {string} mode
+ * @returns {string}
  */
-export function getPersonaPrompt(mode: AssistantMode): string {
+export function getPersonaPrompt(mode) {
   return PERSONA_MAP[mode];
 }

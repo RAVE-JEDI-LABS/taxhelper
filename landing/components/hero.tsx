@@ -75,32 +75,24 @@ export function Hero() {
           </div>
 
           {/* Hero Image */}
-          <div className="order-1 lg:order-2 flex justify-center lg:justify-end">
-            <div className="relative">
-              {/* Main Image with Gold Frame */}
-              <div
-                className="relative w-44 md:w-56 lg:w-64 aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border-4 border-accent bg-primary-800"
-              >
-                <Image
-                  src="/images/gordon-ulen.jpg"
-                  alt="Gordon W. Ulen, CPA"
-                  fill
-                  className="object-cover object-top"
-                  priority
-                />
-                {/* Gradient overlay for better text contrast on badge */}
-                <div className="absolute inset-0 bg-gradient-to-t from-primary-900/20 via-transparent to-transparent pointer-events-none" />
-              </div>
+          <div className="order-1 lg:order-2 flex flex-col items-center lg:items-end">
+            {/* Main Image with Gold Frame */}
+            <div
+              className="relative w-36 md:w-56 lg:w-64 aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border-4 border-accent bg-primary-800"
+            >
+              <Image
+                src="/images/gordon-ulen.jpg"
+                alt="Gordon W. Ulen, CPA"
+                fill
+                className="object-cover object-top"
+                priority
+              />
+            </div>
 
-              {/* Decorative elements */}
-              <div className="absolute -z-10 -bottom-4 -right-4 w-[calc(100%-1rem)] h-[calc(100%-1rem)] bg-accent/10 rounded-2xl blur-sm" />
-              <div className="absolute -z-20 -bottom-8 -right-8 w-[calc(100%-2rem)] h-[calc(100%-2rem)] bg-accent/5 rounded-2xl blur-md" />
-
-              {/* Name badge */}
-              <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-accent px-6 py-3 rounded-xl shadow-xl border-2 border-accent-300 backdrop-blur-sm">
-                <p className="font-bold text-primary-900 text-lg">Gordon W. Ulen</p>
-                <p className="text-xs text-primary-800 font-medium">Certified Public Accountant</p>
-              </div>
+            {/* Name badge - below image, not overlapping */}
+            <div className="mt-4 bg-accent px-6 py-3 rounded-xl shadow-xl border-2 border-accent-300 text-center">
+              <p className="font-bold text-primary-900 text-lg">Gordon W. Ulen</p>
+              <p className="text-xs text-primary-800 font-medium">Certified Public Accountant</p>
             </div>
           </div>
         </div>

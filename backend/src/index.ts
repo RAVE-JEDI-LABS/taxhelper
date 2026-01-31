@@ -28,9 +28,21 @@ initializeFirebase();
 setupTwilioWebSocket(server);
 
 // Middleware
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:3000')
-  .split(',')
-  .map(origin => origin.trim());
+const defaultOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'https://gordonulencpa.com',
+  'https://www.gordonulencpa.com',
+  'https://gordonulencpa.web.app',
+  'https://gordonulencpa-admin.web.app',
+  'https://admin.gordonulencpa.com',
+  'https://gordonulencpa-portal.web.app',
+  'https://portal.gordonulencpa.com',
+];
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+  : defaultOrigins;
 
 app.use(cors({
   origin: (origin, callback) => {

@@ -8,7 +8,7 @@
   "exports": {
     ".": "./generated/typescript/schema.ts",
     "./generated/typescript/schema": "./generated/typescript/schema.ts",
-    "./prompts": "./prompts/index.ts"
+    "./prompts": "./prompts/index.js"
   },
   "scripts": {
     "generate": "pnpm run generate:ts && pnpm run generate:python",

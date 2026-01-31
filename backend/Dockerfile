@@ -16,12 +16,13 @@ COPY packages/shared ./packages/shared
 COPY backend ./backend
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
-# Generate shared types first, then build backend
+# Generate shared types
 WORKDIR /app/packages/shared
 RUN mkdir -p generated/typescript && pnpm exec openapi-typescript openapi.yaml -o generated/typescript/schema.ts
 
+# Build backend
 WORKDIR /app/backend
 RUN pnpm build
 
@@ -37,14 +38,14 @@ COPY pnpm-workspace.yaml ./
 COPY pnpm-lock.yaml ./
 COPY package.json ./
 
-# Copy built packages
+# Copy built packages (include dist for compiled prompts)
 COPY --from=builder /app/packages/shared ./packages/shared
 COPY --from=builder /app/backend/package.json ./backend/
 COPY --from=builder /app/backend/dist ./backend/dist
 
 # Install production dependencies only
 WORKDIR /app/backend
-RUN pnpm install --prod --frozen-lockfile
+RUN pnpm install --prod
 
 # Set environment
 ENV NODE_ENV=production
