@@ -35,10 +35,14 @@ export function generateStreamTwiML(callSid: string, wsUrl: string): string {
 
   // Start bidirectional audio stream to our WebSocket server
   const connect = response.connect();
-  connect.stream({
+  const stream = connect.stream({
     url: wsUrl,
     name: 'elevenlabs-stream',
   });
+
+  // Request specific audio parameters for ElevenLabs compatibility
+  stream.parameter({ name: 'audioFormat', value: 'mulaw' });
+  stream.parameter({ name: 'sampleRate', value: '8000' });
 
   return response.toString();
 }

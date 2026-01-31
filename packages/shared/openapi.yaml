@@ -590,6 +590,42 @@ components:
           $ref: '#/components/schemas/CommunicationTrigger'
           default: manual
 
+    # Contact Submissions
+    ContactSubmission:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        message:
+          type: string
+        userId:
+          type: string
+          description: Firebase Auth UID if logged in
+        userEmail:
+          type: string
+        customerId:
+          type: string
+          description: Linked customer ID if found
+        status:
+          type: string
+          enum: [new, read, replied, archived]
+        source:
+          type: string
+          enum: [website, portal]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
     # SMS & Chat Logs
     SmsLog:
       type: object

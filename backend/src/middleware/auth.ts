@@ -65,6 +65,34 @@ export async function authMiddleware(
   }
 }
 
+// Optional auth - attaches user if token present, but doesn't require it
+export async function optionalAuthMiddleware(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.split('Bearer ')[1];
+      try {
+        const decodedToken = await getAuth().verifyIdToken(token);
+        req.user = {
+          uid: decodedToken.uid,
+          email: decodedToken.email,
+          role: decodedToken.role as string | undefined,
+        };
+      } catch {
+        // Token invalid, continue without user
+      }
+    }
+    next();
+  } catch (error) {
+    next();
+  }
+}
+
 export function requireRole(...roles: string[]) {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (!req.user) {

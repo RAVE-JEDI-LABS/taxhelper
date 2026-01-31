@@ -133,35 +133,36 @@ Appointment types available:
     try {
       const message = JSON.parse(data.toString());
 
-      switch (message.type) {
-        case 'audio':
-          // Forward audio to Twilio stream
-          this.emit('audio', message.audio);
-          break;
-
-        case 'user_transcript':
-          this.transcript.push(`Caller: ${message.text}`);
-          this.emit('transcript', { role: 'user', text: message.text });
-          break;
-
-        case 'agent_response':
-          this.transcript.push(`Agent: ${message.text}`);
-          this.emit('transcript', { role: 'agent', text: message.text });
-
-          // Check for action in response
-          this.parseAction(message.text);
-          break;
-
-        case 'interruption':
-          this.emit('interruption');
-          break;
-
-        case 'ping':
-          this.ws?.send(JSON.stringify({ type: 'pong' }));
-          break;
-
-        default:
-          console.log(`[ElevenLabs] Unknown message type: ${message.type}`);
+      // Handle different message types from ElevenLabs Conversational AI
+      if (message.audio) {
+        // Audio chunk from agent
+        this.emit('audio', message.audio.chunk || message.audio);
+      } else if (message.type === 'audio') {
+        this.emit('audio', message.audio_event?.audio_base_64 || message.audio);
+      } else if (message.type === 'user_transcript' || message.user_transcription) {
+        const text = message.user_transcription?.text || message.text;
+        if (text) {
+          this.transcript.push(`Caller: ${text}`);
+          this.emit('transcript', { role: 'user', text });
+        }
+      } else if (message.type === 'agent_response' || message.agent_response) {
+        const text = message.agent_response?.text || message.text;
+        if (text) {
+          this.transcript.push(`Agent: ${text}`);
+          this.emit('transcript', { role: 'agent', text });
+          this.parseAction(text);
+        }
+      } else if (message.type === 'interruption' || message.interruption) {
+        this.emit('interruption');
+      } else if (message.type === 'ping' || message.ping_event) {
+        this.ws?.send(JSON.stringify({ type: 'pong' }));
+      } else if (message.type === 'conversation_initiation_metadata') {
+        console.log(`[ElevenLabs] Conversation initialized: ${message.conversation_id}`);
+      } else if (message.type === 'error' || message.error) {
+        console.error(`[ElevenLabs] Error:`, message.error || message);
+        this.emit('error', message.error || message);
+      } else {
+        console.log(`[ElevenLabs] Message:`, JSON.stringify(message).substring(0, 200));
       }
     } catch (error) {
       console.error('[ElevenLabs] Error parsing message:', error);
@@ -184,10 +185,10 @@ Appointment types available:
   sendAudio(audioData: Buffer): void {
     if (!this.ws || !this.isConnected) return;
 
+    // ElevenLabs expects user_audio type with base64 PCM data
     this.ws.send(
       JSON.stringify({
-        type: 'audio',
-        audio: audioData.toString('base64'),
+        user_audio_chunk: audioData.toString('base64'),
       })
     );
   }

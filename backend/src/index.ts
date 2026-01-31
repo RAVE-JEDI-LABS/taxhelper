@@ -12,7 +12,8 @@ import { usersRouter } from './routes/users.js';
 import { twilioRouter } from './routes/twilio.js';
 import { calendlyRouter } from './routes/calendly.js';
 import { assistantRouter } from './routes/assistant.js';
-import { authMiddleware } from './middleware/auth.js';
+import { contactRouter } from './routes/contact.js';
+import { authMiddleware, optionalAuthMiddleware } from './middleware/auth.js';
 import { initializeFirebase } from './services/firebase.js';
 import { setupTwilioWebSocket } from './websocket/twilio-stream.js';
 
@@ -46,6 +47,10 @@ app.use('/api/twilio', twilioRouter);
 
 // Calendly webhook (no auth - uses signature validation)
 app.use('/api/calendly/webhook', express.json(), calendlyRouter);
+
+// Contact form - POST is public (optional auth), GET/PATCH require auth
+app.post('/api/contact', optionalAuthMiddleware, contactRouter);
+app.use('/api/contact', authMiddleware, contactRouter);
 
 // Protected routes
 app.use('/api/calendly', authMiddleware, calendlyRouter);
