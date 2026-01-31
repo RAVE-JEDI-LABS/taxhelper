@@ -3,6 +3,15 @@ import multer from 'multer';
 import { FirestoreService } from '../services/firestore.js';
 import { getStorage } from '../services/firebase.js';
 import type { AuthenticatedRequest } from '../middleware/auth.js';
+import {
+  requireStaff,
+  requirePreparer,
+  requireAdmin,
+  loadCustomerContext,
+  filterByOwnership,
+  isCustomer,
+  verifyOwnership,
+} from '../middleware/authorization.js';
 import type { components } from '@taxhelper/shared/generated/typescript/schema';
 
 type Document = components['schemas']['Document'];
@@ -27,8 +36,11 @@ const upload = multer({
 
 export const documentsRouter: Router = Router();
 
-// List documents
-documentsRouter.get('/', async (req: AuthenticatedRequest, res, next) => {
+// Apply customer context loading to all routes
+documentsRouter.use(loadCustomerContext());
+
+// List documents - Staff sees all, customers see only their own
+documentsRouter.get('/', filterByOwnership(), async (req: AuthenticatedRequest, res, next) => {
   try {
     const { customerId, taxYear, type, status, page, limit } = req.query;
 
@@ -49,21 +61,30 @@ documentsRouter.get('/', async (req: AuthenticatedRequest, res, next) => {
   }
 });
 
-// Get document by ID
-documentsRouter.get('/:id', async (req, res, next) => {
+// Get document by ID - Staff or customer accessing own document
+documentsRouter.get('/:id', async (req: AuthenticatedRequest, res, next) => {
   try {
     const document = await documentService.getById(req.params.id);
     if (!document) {
       return res.status(404).json({ code: 'NOT_FOUND', message: 'Document not found' });
     }
+
+    // Authorization: Staff can view any, customers can only view their own
+    if (!verifyOwnership(req, document.customerId)) {
+      return res.status(403).json({
+        code: 'FORBIDDEN',
+        message: 'You do not have access to this document',
+      });
+    }
+
     res.json(document);
   } catch (error) {
     next(error);
   }
 });
 
-// Create document record
-documentsRouter.post('/', async (req: AuthenticatedRequest, res, next) => {
+// Create document record - Staff only (direct metadata creation)
+documentsRouter.post('/', requireStaff(), async (req: AuthenticatedRequest, res, next) => {
   try {
     const { customerId, taxYear, type, fileName } = req.body;
 
@@ -91,7 +112,7 @@ documentsRouter.post('/', async (req: AuthenticatedRequest, res, next) => {
   }
 });
 
-// Upload document file
+// Upload document file - Staff can upload for anyone, customers can upload for themselves
 documentsRouter.post('/upload', upload.single('file'), async (req: AuthenticatedRequest, res, next) => {
   try {
     const file = req.file;
@@ -105,6 +126,14 @@ documentsRouter.post('/upload', upload.single('file'), async (req: Authenticated
       return res.status(400).json({
         code: 'VALIDATION_ERROR',
         message: 'customerId and taxYear are required',
+      });
+    }
+
+    // Authorization: Staff can upload for anyone, customers can only upload for themselves
+    if (!verifyOwnership(req, customerId)) {
+      return res.status(403).json({
+        code: 'FORBIDDEN',
+        message: 'You can only upload documents for your own account',
       });
     }
 
@@ -153,8 +182,8 @@ documentsRouter.post('/upload', upload.single('file'), async (req: Authenticated
   }
 });
 
-// Update document (for OCR results)
-documentsRouter.patch('/:id', async (req, res, next) => {
+// Update document (for OCR results) - Preparers only
+documentsRouter.patch('/:id', requirePreparer(), async (req, res, next) => {
   try {
     const document = await documentService.update(req.params.id, req.body);
     if (!document) {
@@ -166,9 +195,10 @@ documentsRouter.patch('/:id', async (req, res, next) => {
   }
 });
 
-// Delete document
-documentsRouter.delete('/:id', async (req, res, next) => {
+// Delete document - Admin only
+documentsRouter.delete('/:id', requireAdmin(), async (req, res, next) => {
   try {
+    // TODO: Also delete the file from Firebase Storage
     const deleted = await documentService.delete(req.params.id);
     if (!deleted) {
       return res.status(404).json({ code: 'NOT_FOUND', message: 'Document not found' });

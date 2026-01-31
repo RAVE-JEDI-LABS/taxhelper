@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { FirestoreService } from '../services/firestore.js';
 import type { AuthenticatedRequest } from '../middleware/auth.js';
+import { requireStaff } from '../middleware/authorization.js';
 import type { components } from '@taxhelper/shared/generated/typescript/schema';
 
 type Communication = components['schemas']['Communication'];
@@ -9,7 +10,10 @@ const communicationService = new FirestoreService<Communication>('communications
 
 export const communicationsRouter: Router = Router();
 
-// List communications
+// All communication routes require staff role
+communicationsRouter.use(requireStaff());
+
+// List communications - Staff only
 communicationsRouter.get('/', async (req: AuthenticatedRequest, res, next) => {
   try {
     const { customerId, type, page, limit } = req.query;
@@ -29,7 +33,7 @@ communicationsRouter.get('/', async (req: AuthenticatedRequest, res, next) => {
   }
 });
 
-// Send communication
+// Send communication - Staff only
 communicationsRouter.post('/send', async (req: AuthenticatedRequest, res, next) => {
   try {
     const { customerId, type, subject, content, triggeredBy } = req.body;
@@ -67,7 +71,7 @@ communicationsRouter.post('/send', async (req: AuthenticatedRequest, res, next) 
   }
 });
 
-// Record inbound communication
+// Record inbound communication - Staff only
 communicationsRouter.post('/inbound', async (req: AuthenticatedRequest, res, next) => {
   try {
     const { customerId, type, subject, content } = req.body;

@@ -12,73 +12,61 @@ import {
 } from '../services/twilio.js';
 import { createConversation, ElevenLabsConversation, Intent, AgentAction } from '../services/elevenlabs.js';
 import { buildSystemPrompt } from '@taxhelper/shared/prompts';
+import type { components } from '@taxhelper/shared/generated/typescript/schema';
+
+type CallLog = components['schemas']['CallLog'];
+type SmsLog = components['schemas']['SmsLog'];
+type StaffMember = components['schemas']['StaffMember'];
+type TaxReturn = components['schemas']['TaxReturn'];
+type Customer = components['schemas']['Customer'];
+
+// Helper to get full name from customer
+function getCustomerName(customer: Customer | null | undefined): string | undefined {
+  if (!customer) return undefined;
+  if (customer.firstName && customer.lastName) {
+    return `${customer.firstName} ${customer.lastName}`;
+  }
+  return customer.firstName || customer.lastName || undefined;
+}
 
 // Store active conversations by call SID
 const activeConversations = new Map<string, ElevenLabsConversation>();
 
-interface CallLog {
-  id?: string;
-  callSid: string;
-  from: string;
-  to: string;
-  direction: 'inbound' | 'outbound';
-  status: 'in-progress' | 'completed' | 'failed' | 'no-answer' | 'busy';
-  startTime: string;
-  endTime?: string;
-  duration?: number;
-  intent?: Intent;
-  transcript?: string[];
-  transcriptSummary?: string;
-  resolution: 'ai-resolved' | 'transferred' | 'voicemail' | 'abandoned';
-  recordingUrl?: string;
-  customerId?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-interface SmsLog {
-  id?: string;
-  messageSid: string;
-  from: string;
-  to: string;
-  body: string;
-  direction: 'inbound' | 'outbound';
-  status: 'received' | 'sent' | 'delivered' | 'failed';
-  customerId?: string;
-  customerName?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-interface StaffMember {
-  id: string;
-  name: string;
-  phone: string;
-  available: boolean;
-}
-
-interface TaxReturn {
-  id?: string;
-  customerId: string;
-  taxYear: number;
-  status: string;
-  returnType?: string;
-  assignedPreparer?: string;
-  extensionFiled?: boolean;
-}
-
 const callLogService = new FirestoreService<CallLog>('call_logs');
 const smsLogService = new FirestoreService<SmsLog>('sms_logs');
-const customerService = new FirestoreService<{ id?: string; phone?: string; name?: string; email?: string }>('customers');
-const taxReturnService = new FirestoreService<TaxReturn>('tax_returns');
+const customerService = new FirestoreService<Customer>('customers');
+const taxReturnService = new FirestoreService<TaxReturn>('returns');
 
 export const twilioRouter: Router = Router();
 
 // Middleware to validate Twilio signatures
 const validateSignature = (req: Request, res: Response, next: Function) => {
-  // TODO: Re-enable signature validation after fixing URL mismatch
-  // The Cloud Run URL doesn't match what Twilio sends in the signature
-  return next();
+  // Skip validation in development mode if explicitly configured
+  if (process.env.NODE_ENV === 'development' && process.env.SKIP_TWILIO_VALIDATION === 'true') {
+    console.warn('[Twilio] Skipping signature validation (development mode)');
+    return next();
+  }
+
+  const signature = req.headers['x-twilio-signature'] as string;
+
+  if (!signature) {
+    console.error('[Twilio] Missing X-Twilio-Signature header');
+    return res.status(403).json({ error: 'Missing Twilio signature' });
+  }
+
+  // Use configured API_BASE_URL for signature validation
+  // This fixes the URL mismatch between Cloud Run internal URL and Twilio's expected URL
+  const baseUrl = process.env.API_BASE_URL || `https://${req.get('host')}`;
+  const fullUrl = `${baseUrl}${req.originalUrl}`;
+
+  const isValid = validateTwilioSignature(signature, fullUrl, req.body);
+
+  if (!isValid) {
+    console.error('[Twilio] Invalid signature for URL:', fullUrl);
+    return res.status(403).json({ error: 'Invalid Twilio signature' });
+  }
+
+  next();
 };
 
 // Apply signature validation to all routes
@@ -325,7 +313,7 @@ twilioRouter.post('/sms', async (req: Request, res: Response) => {
       direction: 'inbound',
       status: 'received',
       customerId: customer?.id,
-      customerName: customer?.name,
+      customerName: getCustomerName(customer),
     });
 
     // Get or create conversation history for this phone number
@@ -340,8 +328,9 @@ twilioRouter.post('/sms', async (req: Request, res: Response) => {
     }
 
     // Add customer context if we found them
-    const customerContext = customer?.name
-      ? `[Texting with ${customer.name}, existing client] `
+    const customerName = getCustomerName(customer);
+    const customerContext = customerName
+      ? `[Texting with ${customerName}, existing client] `
       : '[New/unknown caller] ';
 
     // Prepend context to first user message for AI
@@ -477,8 +466,9 @@ function formatTaxReturnStatus(taxReturn: TaxReturn, customerName: string): stri
     extension_filed: `${customerName}, we've filed an extension for your ${taxReturn.taxYear} return. You'll have until October 15th to complete filing.`,
   };
 
-  return statusMessages[taxReturn.status] ||
-    `${customerName}, your ${taxReturn.taxYear} return is currently being processed. Status: ${taxReturn.status}`;
+  const status = taxReturn.status || 'intake';
+  return statusMessages[status] ||
+    `${customerName}, your ${taxReturn.taxYear} return is currently being processed. Status: ${status}`;
 }
 
 /**
@@ -495,7 +485,7 @@ async function handleAgentAction(
     case 'transfer':
       // Get available staff member
       const staff = await getAvailableStaff();
-      if (staff) {
+      if (staff && staff.phone) {
         const whisper = action.params?.reason || 'Customer requested transfer';
         const twiml = generateTransferTwiML(staff.phone, whisper);
         await updateCall(callSid, twiml);
@@ -534,33 +524,34 @@ async function handleAgentAction(
         statusCustomer = await customerService.findOne({ phone: normalizedPhone });
       }
 
-      // If no phone match, try name lookup
+      // If no phone match, try name lookup (search by lastName as a simple approach)
       if (!statusCustomer && lookupName) {
-        // Search by name (case-insensitive would be better but Firestore doesn't support it directly)
-        statusCustomer = await customerService.findOne({ name: lookupName });
+        // Search by lastName (Firestore doesn't support case-insensitive or full-text search directly)
+        statusCustomer = await customerService.findOne({ lastName: lookupName });
       }
 
       if (statusCustomer) {
-        console.log(`[Twilio] Found customer for status lookup: ${statusCustomer.id} (${statusCustomer.name})`);
+        const statusCustomerName = getCustomerName(statusCustomer) || 'Customer';
+        console.log(`[Twilio] Found customer for status lookup: ${statusCustomer.id} (${statusCustomerName})`);
 
         // Get their tax returns - get the most recent year
         const currentYear = new Date().getFullYear();
         let taxReturn = await taxReturnService.findOne({
-          customerId: statusCustomer.id,
+          customerId: statusCustomer.id!,
           taxYear: currentYear
         });
 
         // If no current year return, try previous year
         if (!taxReturn) {
           taxReturn = await taxReturnService.findOne({
-            customerId: statusCustomer.id,
+            customerId: statusCustomer.id!,
             taxYear: currentYear - 1
           });
         }
 
         if (taxReturn) {
-          const statusMessage = formatTaxReturnStatus(taxReturn, statusCustomer.name || 'Customer');
-          console.log(`[Twilio] Tax return status for ${statusCustomer.name}: ${taxReturn.status}`);
+          const statusMessage = formatTaxReturnStatus(taxReturn, statusCustomerName);
+          console.log(`[Twilio] Tax return status for ${statusCustomerName}: ${taxReturn.status}`);
 
           // Inject the status into the ElevenLabs conversation
           conversation.injectContext(statusMessage);
@@ -568,7 +559,7 @@ async function handleAgentAction(
         } else {
           console.log(`[Twilio] No tax return found for customer ${statusCustomer.id}`);
           conversation.injectContext(
-            `I found your account, ${statusCustomer.name}, but I don't see a tax return on file for this year. Would you like to schedule an appointment to get started?`
+            `I found your account, ${statusCustomerName}, but I don't see a tax return on file for this year. Would you like to schedule an appointment to get started?`
           );
         }
       } else {

@@ -69,6 +69,9 @@ components:
       properties:
         id:
           type: string
+        firebaseUid:
+          type: string
+          description: Firebase Auth UID for portal access
         firstName:
           type: string
         lastName:
@@ -893,7 +896,7 @@ components:
     # User (Staff)
     UserRole:
       type: string
-      enum: [admin, preparer, front_desk]
+      enum: [admin, preparer, front_desk, customer]
 
     User:
       type: object
@@ -922,6 +925,45 @@ components:
         createdAt:
           type: string
           format: date-time
+
+    # Staff Member (for Twilio routing)
+    StaffMember:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        phone:
+          type: string
+        extension:
+          type: string
+        available:
+          type: boolean
+          default: true
+        role:
+          $ref: '#/components/schemas/UserRole'
+
+    # Workflow Definition
+    Workflow:
+      type: object
+      required:
+        - id
+        - name
+        - category
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+          enum: [front_desk, office_automation, business_clients]
+        description:
+          type: string
+        content:
+          type: string
+          description: Markdown content of the workflow
 
     # Error Response
     Error:

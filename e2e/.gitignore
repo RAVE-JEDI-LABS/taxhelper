@@ -1,0 +1,16 @@
+# Playwright
+node_modules/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Auth state (contains session tokens - NEVER commit)
+.auth/*.json
+
+# Keep the .auth directory structure
+!.auth/.gitkeep
+
+# Environment
+.env
+.env.local

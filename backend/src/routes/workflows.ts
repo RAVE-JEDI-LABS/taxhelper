@@ -2,13 +2,9 @@ import { Router } from 'express';
 import { promises as fs } from 'fs';
 import path from 'path';
 import type { AuthenticatedRequest } from '../middleware/auth.js';
+import type { components } from '@taxhelper/shared/generated/typescript/schema';
 
-interface Workflow {
-  id: string;
-  name: string;
-  category: 'front_desk' | 'office_automation' | 'business_clients';
-  description: string;
-}
+type Workflow = components['schemas']['Workflow'];
 
 // Workflow definitions (could also be stored in Firestore)
 const workflows: Workflow[] = [

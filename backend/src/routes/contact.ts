@@ -1,24 +1,13 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import { FirestoreService } from '../services/firestore.js';
+import type { components } from '@taxhelper/shared/generated/typescript/schema';
 
-interface ContactSubmission {
-  id?: string;
-  name: string;
-  email: string;
-  phone?: string;
-  message: string;
-  userId?: string;
-  userEmail?: string;
-  customerId?: string;
-  status: 'new' | 'read' | 'replied' | 'archived';
-  source: 'website' | 'portal';
-  createdAt?: string;
-  updatedAt?: string;
-}
+type ContactSubmission = components['schemas']['ContactSubmission'];
+type Customer = components['schemas']['Customer'];
 
 const contactService = new FirestoreService<ContactSubmission>('contact_submissions');
-const customerService = new FirestoreService<{ id?: string; email?: string; phone?: string }>('customers');
+const customerService = new FirestoreService<Customer>('customers');
 
 export const contactRouter: Router = Router();
 

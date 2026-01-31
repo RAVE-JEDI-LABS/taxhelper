@@ -2,29 +2,24 @@ import { Router } from 'express';
 import type { AuthenticatedRequest } from '../middleware/auth.js';
 import { FirestoreService } from '../services/firestore.js';
 import { buildSystemPrompt, type AssistantMode } from '@taxhelper/shared/prompts';
+import type { components } from '@taxhelper/shared/generated/typescript/schema';
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+type ChatLog = components['schemas']['ChatLog'];
+type ChatMessage = components['schemas']['ChatMessage'];
+type Customer = components['schemas']['Customer'];
 
-interface ChatLog {
-  id?: string;
-  sessionId: string;
-  customerId?: string;
-  customerPhone?: string;
-  channel: 'web' | 'sms';
-  messages: { role: string; content: string; timestamp: string }[];
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-const chatLogService = new FirestoreService<ChatLog>('chat_logs');
-const customerService = new FirestoreService<{ id?: string; phone?: string; name?: string; email?: string }>('customers');
-
-export const assistantRouter: Router = Router();
-
+// Local message type for API request/response
 interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
+
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+const chatLogService = new FirestoreService<ChatLog>('chat_logs');
+const customerService = new FirestoreService<Customer>('customers');
+
+export const assistantRouter: Router = Router();
 
 assistantRouter.post('/chat', async (req: AuthenticatedRequest, res, next) => {
   try {
@@ -45,7 +40,10 @@ assistantRouter.post('/chat', async (req: AuthenticatedRequest, res, next) => {
       const customer = await customerService.findOne({ email: req.user.email });
       if (customer) {
         customerId = customer.id;
-        customerContext = `[Customer: ${customer.name || 'Unknown'}, Phone: ${customer.phone || 'N/A'}]`;
+        const customerName = customer.firstName && customer.lastName
+          ? `${customer.firstName} ${customer.lastName}`
+          : 'Unknown';
+        customerContext = `[Customer: ${customerName}, Phone: ${customer.phone || 'N/A'}]`;
       }
     }
 
@@ -91,7 +89,7 @@ assistantRouter.post('/chat', async (req: AuthenticatedRequest, res, next) => {
         // Update existing conversation
         const updateData: Partial<ChatLog> = {
           messages: [
-            ...existingLog.messages,
+            ...(existingLog.messages || []),
             { role: 'user', content: lastUserMsg.content, timestamp },
             { role: 'assistant', content: assistantMessage, timestamp },
           ],

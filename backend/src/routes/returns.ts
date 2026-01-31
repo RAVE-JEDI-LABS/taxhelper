@@ -1,6 +1,16 @@
 import { Router } from 'express';
 import { FirestoreService } from '../services/firestore.js';
 import type { AuthenticatedRequest } from '../middleware/auth.js';
+import {
+  requirePreparer,
+  requireAdmin,
+  loadCustomerContext,
+  filterByOwnership,
+  isCustomer,
+  verifyOwnership,
+} from '../middleware/authorization.js';
+import { validateForeignKeys } from '../services/validation.js';
+import { deleteReturnCascade } from '../services/cascade-delete.js';
 import type { components } from '@taxhelper/shared/generated/typescript/schema';
 
 type TaxReturn = components['schemas']['TaxReturn'];
@@ -9,8 +19,11 @@ const returnService = new FirestoreService<TaxReturn>('returns');
 
 export const returnsRouter: Router = Router();
 
-// List tax returns
-returnsRouter.get('/', async (req: AuthenticatedRequest, res, next) => {
+// Apply customer context loading to all routes
+returnsRouter.use(loadCustomerContext());
+
+// List tax returns - Staff sees all, customers see only their own
+returnsRouter.get('/', filterByOwnership(), async (req: AuthenticatedRequest, res, next) => {
   try {
     const { customerId, taxYear, status, assignedPreparer, page, limit } = req.query;
 
@@ -31,21 +44,30 @@ returnsRouter.get('/', async (req: AuthenticatedRequest, res, next) => {
   }
 });
 
-// Get tax return by ID
-returnsRouter.get('/:id', async (req, res, next) => {
+// Get tax return by ID - Staff or customer accessing own return
+returnsRouter.get('/:id', async (req: AuthenticatedRequest, res, next) => {
   try {
     const taxReturn = await returnService.getById(req.params.id);
     if (!taxReturn) {
       return res.status(404).json({ code: 'NOT_FOUND', message: 'Tax return not found' });
     }
+
+    // Authorization: Staff can view any, customers can only view their own
+    if (!verifyOwnership(req, taxReturn.customerId)) {
+      return res.status(403).json({
+        code: 'FORBIDDEN',
+        message: 'You do not have access to this tax return',
+      });
+    }
+
     res.json(taxReturn);
   } catch (error) {
     next(error);
   }
 });
 
-// Create tax return
-returnsRouter.post('/', async (req: AuthenticatedRequest, res, next) => {
+// Create tax return - Preparers only
+returnsRouter.post('/', requirePreparer(), async (req: AuthenticatedRequest, res, next) => {
   try {
     const { customerId, taxYear, returnType, assignedPreparer, dueDate, routingSheet } = req.body;
 
@@ -53,6 +75,20 @@ returnsRouter.post('/', async (req: AuthenticatedRequest, res, next) => {
       return res.status(400).json({
         code: 'VALIDATION_ERROR',
         message: 'customerId, taxYear, and returnType are required',
+      });
+    }
+
+    // Validate foreign keys
+    const validation = await validateForeignKeys({
+      customerId,
+      assignedPreparer,
+    });
+
+    if (!validation.valid) {
+      return res.status(400).json({
+        code: 'VALIDATION_ERROR',
+        message: 'Foreign key validation failed',
+        details: { errors: validation.errors },
       });
     }
 
@@ -76,8 +112,8 @@ returnsRouter.post('/', async (req: AuthenticatedRequest, res, next) => {
   }
 });
 
-// Update tax return status
-returnsRouter.patch('/:id/status', async (req: AuthenticatedRequest, res, next) => {
+// Update tax return status - Preparers only
+returnsRouter.patch('/:id/status', requirePreparer(), async (req: AuthenticatedRequest, res, next) => {
   try {
     const { status, notes } = req.body;
 
@@ -115,8 +151,8 @@ returnsRouter.patch('/:id/status', async (req: AuthenticatedRequest, res, next) 
   }
 });
 
-// Update tax return
-returnsRouter.patch('/:id', async (req, res, next) => {
+// Update tax return - Preparers only
+returnsRouter.patch('/:id', requirePreparer(), async (req, res, next) => {
   try {
     const taxReturn = await returnService.update(req.params.id, req.body);
     if (!taxReturn) {
@@ -128,13 +164,19 @@ returnsRouter.patch('/:id', async (req, res, next) => {
   }
 });
 
-// Delete tax return
-returnsRouter.delete('/:id', async (req, res, next) => {
+// Delete tax return - Admin only (cascading delete includes related documents)
+returnsRouter.delete('/:id', requireAdmin(), async (req, res, next) => {
   try {
-    const deleted = await returnService.delete(req.params.id);
-    if (!deleted) {
-      return res.status(404).json({ code: 'NOT_FOUND', message: 'Tax return not found' });
+    const result = await deleteReturnCascade(req.params.id);
+
+    if (!result.success) {
+      if (result.error?.includes('not found')) {
+        return res.status(404).json({ code: 'NOT_FOUND', message: result.error });
+      }
+      return res.status(500).json({ code: 'DELETE_FAILED', message: result.error });
     }
+
+    console.log(`Cascade deleted return ${req.params.id}:`, result.deleted);
     res.status(204).send();
   } catch (error) {
     next(error);

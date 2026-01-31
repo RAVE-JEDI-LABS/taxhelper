@@ -2,8 +2,109 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
+
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+
+    // Check if request is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Get user role from Firestore users collection
+    function getUserRole() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    // Role-based checks
+    function isAdmin() {
+      return isAuthenticated() && getUserRole() == 'admin';
+    }
+
+    function isPreparer() {
+      return isAuthenticated() && getUserRole() in ['admin', 'preparer'];
+    }
+
+    function isStaff() {
+      return isAuthenticated() && getUserRole() in ['admin', 'preparer', 'front_desk'];
+    }
+
+    function isCustomer() {
+      return isAuthenticated() && getUserRole() == 'customer';
+    }
+
+    // Check if the authenticated customer owns a customer record
+    function ownsCustomerRecord(customerId) {
+      return firestore.get(/databases/(default)/documents/customers/$(customerId)).data.firebaseUid == request.auth.uid;
+    }
+
+    // ============================================
+    // DOCUMENTS STORAGE
+    // Path: /documents/{customerId}/{taxYear}/{filename}
+    // Staff can access all, customers can only access their own
+    // ============================================
+    match /documents/{customerId}/{taxYear}/{fileName} {
+      // Staff can read any document
+      // Customers can only read their own documents
+      allow read: if isAuthenticated() && (
+        isStaff() ||
+        (isCustomer() && ownsCustomerRecord(customerId))
+      );
+
+      // Staff can write any document
+      // Customers can only upload to their own folder
+      allow write: if isAuthenticated() && (
+        isStaff() ||
+        (isCustomer() && ownsCustomerRecord(customerId))
+      );
+
+      // Only staff can delete documents
+      allow delete: if isStaff();
+    }
+
+    // ============================================
+    // RECORDINGS STORAGE (Twilio call recordings)
+    // Path: /recordings/{callSid}/{filename}
+    // Staff only
+    // ============================================
+    match /recordings/{callSid}/{fileName} {
+      allow read, write: if isStaff();
+    }
+
+    // ============================================
+    // PROFILE IMAGES
+    // Path: /profiles/{userId}/{filename}
+    // Users can manage their own, staff can view all
+    // ============================================
+    match /profiles/{userId}/{fileName} {
+      allow read: if isAuthenticated() && (
+        isStaff() ||
+        request.auth.uid == userId
+      );
+
+      allow write: if isAuthenticated() && (
+        request.auth.uid == userId ||
+        isAdmin()
+      );
+    }
+
+    // ============================================
+    // TEMP UPLOADS
+    // Path: /temp/{userId}/{filename}
+    // Users can upload temporary files (processed and moved by backend)
+    // ============================================
+    match /temp/{userId}/{fileName} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      allow delete: if isAuthenticated() && (request.auth.uid == userId || isStaff());
+    }
+
+    // ============================================
+    // DEFAULT DENY
+    // Block access to any other paths
+    // ============================================
     match /{allPaths=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if false;
     }
   }
 }
