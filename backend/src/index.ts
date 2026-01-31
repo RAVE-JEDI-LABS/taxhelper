@@ -52,6 +52,9 @@ app.use('/api/calendly/webhook', express.json(), calendlyRouter);
 app.post('/api/contact', optionalAuthMiddleware, contactRouter);
 app.use('/api/contact', authMiddleware, contactRouter);
 
+// AI Assistant - public for landing page (optional auth)
+app.use('/api/assistant', optionalAuthMiddleware, assistantRouter);
+
 // Protected routes
 app.use('/api/calendly', authMiddleware, calendlyRouter);
 app.use('/api/customers', authMiddleware, customersRouter);
@@ -62,7 +65,6 @@ app.use('/api/communications', authMiddleware, communicationsRouter);
 app.use('/api/kanban', authMiddleware, kanbanRouter);
 app.use('/api/workflows', authMiddleware, workflowsRouter);
 app.use('/api/users', authMiddleware, usersRouter);
-app.use('/api/assistant', authMiddleware, assistantRouter);
 
 // Error handling
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
