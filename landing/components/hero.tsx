@@ -67,7 +67,7 @@ export function Hero() {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-10 h-10 bg-accent/20 border border-accent/30 rounded-full flex items-center justify-center">
-                  <span className="text-accent font-bold text-sm">500+</span>
+                  <span className="text-accent font-bold text-sm">1000+</span>
                 </div>
                 <span className="text-sm">Happy Clients</span>
               </div>

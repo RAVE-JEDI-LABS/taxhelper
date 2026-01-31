@@ -25,7 +25,7 @@ const services = [
   },
   {
     icon: Calculator,
-    title: 'Bookkeeping Services',
+    title: 'Business Bookkeeping Services',
     description: 'Accurate monthly bookkeeping and financial statements. Keep your books organized and ready for tax season all year.',
   },
   {

@@ -72,7 +72,7 @@ export function About() {
                 <div className="text-sm text-gray-500">Years Experience</div>
               </div>
               <div>
-                <div className="text-4xl font-bold text-primary">500+</div>
+                <div className="text-4xl font-bold text-primary">1000+</div>
                 <div className="text-sm text-gray-500">Happy Clients</div>
               </div>
               <div>
@@ -88,7 +88,7 @@ export function About() {
           <h3 className="text-2xl md:text-3xl font-bold text-gray-900 text-center mb-12">
             Meet Our Team
           </h3>
-          <div className="grid md:grid-cols-3 gap-8 lg:gap-12 justify-items-center">
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-12 justify-items-center max-w-4xl mx-auto">
             {/* Michele Goodwin */}
             <div className="relative">
               <div className="relative w-44 md:w-56 lg:w-64 aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border-4 border-accent bg-primary-800">
@@ -107,29 +107,11 @@ export function About() {
               </div>
             </div>
 
-            {/* David Takesian */}
-            <div className="relative">
-              <div className="relative w-44 md:w-56 lg:w-64 aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border-4 border-accent bg-primary-800">
-                <Image
-                  src="/images/david-takesian.jpg"
-                  alt="David Takesian"
-                  fill
-                  className="object-cover object-top"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-primary-900/20 via-transparent to-transparent pointer-events-none" />
-              </div>
-              <div className="absolute -z-10 -bottom-4 -right-4 w-[calc(100%-1rem)] h-[calc(100%-1rem)] bg-accent/10 rounded-2xl blur-sm" />
-              <div className="absolute -z-20 -bottom-8 -right-8 w-[calc(100%-2rem)] h-[calc(100%-2rem)] bg-accent/5 rounded-2xl blur-md" />
-              <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-accent px-6 py-3 rounded-xl shadow-xl border-2 border-accent-300 backdrop-blur-sm">
-                <p className="font-bold text-primary-900 text-lg">David Takesian</p>
-              </div>
-            </div>
-
             {/* Kierstyn Fahey */}
             <div className="relative">
               <div className="relative w-44 md:w-56 lg:w-64 aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border-4 border-accent bg-primary-800">
                 <Image
-                  src="/images/kierstyn-fahey.jpg"
+                  src="/images/kierstyn-fahey.png"
                   alt="Kierstyn Fahey"
                   fill
                   className="object-cover object-top"
