@@ -86,20 +86,15 @@ export class ElevenLabsConversation extends EventEmitter {
   private sendConfig(): void {
     if (!this.ws || !this.isConnected) return;
 
-    // Send conversation configuration
+    // Send minimal conversation initiation - the agent is already configured in ElevenLabs dashboard
+    // Don't override first_message or prompt as the agent config doesn't allow it
     const config = {
       type: 'conversation_initiation_client_data',
-      conversation_config_override: {
-        agent: {
-          first_message: this.getGreeting(),
-          prompt: {
-            prompt: this.getSystemPrompt(),
-          },
-        },
-      },
+      custom_llm_extra_body: {},
     };
 
     this.ws.send(JSON.stringify(config));
+    console.log('[ElevenLabs] Sent config:', JSON.stringify(config));
   }
 
   private getGreeting(): string {
@@ -146,7 +141,7 @@ Appointment types available:
 - Consultation (60 min)
 
 Office information:
-- Address: 6 Chestnut St Suite 106, Amesbury, MA 01913
+- Address: 123 Main Street, Suite 200, Anytown, ST 12345
 - Phone: (978) 372-7050
 - Hours: Monday-Friday 9am-5pm, Saturday 9am-12pm during tax season`;
   }
@@ -154,6 +149,7 @@ Office information:
   private handleMessage(data: WebSocket.RawData): void {
     try {
       const message = JSON.parse(data.toString());
+      console.log(`[ElevenLabs] Raw message type: ${message.type}`, JSON.stringify(message).substring(0, 300));
 
       // Handle different message types from ElevenLabs Conversational AI
       if (message.audio) {
@@ -180,6 +176,7 @@ Office information:
         this.ws?.send(JSON.stringify({ type: 'pong' }));
       } else if (message.type === 'conversation_initiation_metadata') {
         console.log(`[ElevenLabs] Conversation initialized: ${message.conversation_id}`);
+        console.log(`[ElevenLabs] Full init message:`, JSON.stringify(message).substring(0, 500));
       } else if (message.type === 'error' || message.error) {
         console.error(`[ElevenLabs] Error:`, message.error || message);
         this.emit('error', message.error || message);

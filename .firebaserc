@@ -5,8 +5,11 @@
   "targets": {
     "taxhelper-ravejedilabs": {
       "hosting": {
-        "main": [
+        "landing": [
           "gordonulencpa"
+        ],
+        "app": [
+          "gordonulencpa-app"
         ]
       }
     }

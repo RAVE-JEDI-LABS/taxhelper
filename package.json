@@ -11,7 +11,11 @@
     "dev": "concurrently \"pnpm dev:frontend\" \"pnpm dev:backend\"",
     "build:frontend": "pnpm --filter @taxhelper/frontend build",
     "build:backend": "pnpm --filter @taxhelper/backend build",
-    "build:landing": "pnpm --filter @taxhelper/landing build"
+    "build:landing": "pnpm --filter @taxhelper/landing build",
+    "build:all": "pnpm build:frontend && pnpm build:landing",
+    "deploy:landing": "firebase deploy --only hosting:landing",
+    "deploy:app": "firebase deploy --only hosting:app",
+    "deploy:hosting": "pnpm build:all && firebase deploy --only hosting"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
