@@ -4,10 +4,10 @@
 Tax preparation workflow automation system for Gordon Ulen CPA, built by RaveJedi Labs.
 
 ## Tech Stack
-- **Frontend**: Next.js 14, React 18, Tailwind CSS
+- **Frontend**: Next.js 14, React 18, Tailwind CSS (3 separate apps)
 - **Backend**: Node.js, Express
 - **Database**: Firestore
-- **Hosting**: Firebase Hosting
+- **Hosting**: Firebase Hosting (multi-site)
 - **Auth**: Firebase Authentication
 - **Storage**: Firebase Storage
 - **Phone System**: Twilio (Voice, WebSocket streaming)
@@ -17,16 +17,30 @@ Tax preparation workflow automation system for Gordon Ulen CPA, built by RaveJed
 - **Project ID**: taxhelper-ravejedilabs
 - **Console**: https://console.firebase.google.com/project/taxhelper-ravejedilabs
 
+## Hosting Sites
+| Site | Domain | App | Purpose |
+|------|--------|-----|---------|
+| `gordonulencpa` | gordonulencpa.com | `landing/` | Marketing landing page |
+| `gordonulencpa-app` | admin.gordonulencpa.com | `admin/` | Staff admin portal |
+| `gordonulencpa-portal` | portal.gordonulencpa.com | `portal/` | Customer portal |
+
 ## Project Structure
 ```
 taxhelper/
 ├── packages/shared/           # Single source of truth
 │   ├── openapi.yaml          # API schema (ALL types defined here)
 │   └── generated/typescript/ # Auto-generated TypeScript types
-├── frontend/                  # Next.js app
+├── landing/                   # Marketing landing page
 │   ├── app/                  # App router pages
-│   ├── components/           # React components
-│   └── lib/                  # Utils, Firebase config, API client
+│   └── components/           # Landing page components
+├── admin/                     # Staff admin portal
+│   ├── app/                  # Dashboard, customers, returns, workflows
+│   ├── components/           # AI assistant, admin components
+│   └── lib/                  # Firebase config, auth, API client
+├── portal/                    # Customer portal
+│   ├── app/                  # Customer dashboard, login
+│   ├── components/           # Status timeline, etc.
+│   └── lib/                  # Firebase config, auth, API client
 ├── backend/                   # Node.js API
 │   └── src/
 │       ├── routes/
@@ -39,7 +53,7 @@ taxhelper/
 │       ├── document_ocr/     # Document processing
 │       ├── status_tracker/   # Return status tracking
 │       └── models/           # Shared agent models
-├── firebase.json             # Firebase config
+├── firebase.json             # Firebase multi-site hosting config
 ├── firestore.rules           # Firestore security rules
 └── storage.rules             # Storage security rules
 ```
@@ -55,10 +69,26 @@ Output: `packages/shared/generated/typescript/schema.ts`
 
 ## Commands
 ```bash
-pnpm dev:frontend      # Run frontend dev server
-pnpm build:frontend    # Build frontend
+# Development
+pnpm dev:admin         # Run admin portal (port 3001)
+pnpm dev:portal        # Run customer portal (port 3002)
+pnpm dev:landing       # Run landing page (port 3002)
+pnpm dev:backend       # Run backend API
+
+# Building
+pnpm build:admin       # Build admin → build-admin/
+pnpm build:portal      # Build portal → build-portal/
+pnpm build:landing     # Build landing → build-landing/
+pnpm build:all         # Build all 3 frontend apps
+
+# Deployment
+pnpm deploy:admin      # Deploy admin to admin.gordonulencpa.com
+pnpm deploy:portal     # Deploy portal to portal.gordonulencpa.com
+pnpm deploy:landing    # Deploy landing to gordonulencpa.com
+pnpm deploy:hosting    # Build and deploy all hosting sites
+
+# Types
 pnpm generate          # Regenerate types from OpenAPI
-firebase deploy        # Deploy all Firebase services
 ```
 
 ## Environment Configuration
@@ -76,8 +106,9 @@ Required secrets:
 ## Architecture Principles
 - `packages/shared/openapi.yaml` is the **single source of truth** for all data models
 - No redundant type definitions - everything derives from OpenAPI
-- Frontend and backend import types from `@taxhelper/shared`
+- All apps import types from `@taxhelper/shared`
 - Single `.env` file at root - no scattered env files in subfolders
+- **3 separate frontend apps** - admin code is never shipped to customers
 
 ## Firebase / Firestore Rules
 - **NO EMULATORS. EVER.** Always connect to production Firestore.
@@ -98,6 +129,6 @@ Backend integrations not yet wired up:
 - `backend/src/routes/twilio.ts:203-344` - Transcription follow-ups, staff routing
 - `backend/src/routes/returns.ts:135` - Communication agent on status change
 
-Frontend:
-- `frontend/app/admin/documents/page.tsx:67` - Upload modal for customer/year selection
+Admin:
+- `admin/app/(dashboard)/documents/page.tsx` - Upload modal for customer/year selection
 - Kanban board uses mock data fallback when API unavailable

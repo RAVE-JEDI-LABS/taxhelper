@@ -103,9 +103,9 @@ export function Footer() {
             <h4 className="text-white font-semibold mb-4">Contact</h4>
             <ul className="space-y-3 text-gray-400">
               <li>
-                123 Main Street, Suite 200
+                6 Chestnut St Suite 106
                 <br />
-                Anytown, ST 12345
+                Amesbury, MA 01913
               </li>
               <li>
                 <a

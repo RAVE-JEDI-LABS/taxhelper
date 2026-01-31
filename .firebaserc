@@ -8,8 +8,14 @@
         "landing": [
           "gordonulencpa"
         ],
-        "app": [
-          "gordonulencpa-app"
+        "admin": [
+          "gordonulencpa-admin"
+        ],
+        "portal": [
+          "gordonulencpa-portal"
+        ],
+        "default": [
+          "taxhelper-ravejedilabs"
         ]
       }
     }

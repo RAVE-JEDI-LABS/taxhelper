@@ -1,12 +1,14 @@
 {
   "name": "@taxhelper/shared",
   "version": "1.0.0",
-  "description": "Shared OpenAPI schema and generated types for TaxHelper",
+  "description": "Shared OpenAPI schema, generated types, and AI prompts for TaxHelper",
+  "type": "module",
   "main": "generated/typescript/schema.ts",
   "types": "generated/typescript/schema.ts",
   "exports": {
     ".": "./generated/typescript/schema.ts",
-    "./generated/typescript/schema": "./generated/typescript/schema.ts"
+    "./generated/typescript/schema": "./generated/typescript/schema.ts",
+    "./prompts": "./prompts/index.ts"
   },
   "scripts": {
     "generate": "pnpm run generate:ts && pnpm run generate:python",

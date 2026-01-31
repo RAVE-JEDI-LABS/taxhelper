@@ -11,6 +11,7 @@ import {
   sendSms,
 } from '../services/twilio.js';
 import { createConversation, ElevenLabsConversation, Intent, AgentAction } from '../services/elevenlabs.js';
+import { buildSystemPrompt } from '@taxhelper/shared/prompts';
 
 // Store active conversations by call SID
 const activeConversations = new Map<string, ElevenLabsConversation>();
@@ -273,21 +274,8 @@ twilioRouter.post('/whisper', async (req: Request, res: Response) => {
 // Store SMS conversation history by phone number
 const smsConversations = new Map<string, { role: string; content: string }[]>();
 
-const SMS_SYSTEM_PROMPT = `You are a friendly AI assistant for Gordon Ulen CPA, a tax preparation firm in Amesbury, MA.
-
-You're texting with clients. Keep responses SHORT (under 160 chars when possible, max 320).
-
-You can help with:
-- Office hours: Mon-Fri 9am-5pm, Sat 9am-12pm (tax season)
-- Address: 123 Main Street, Suite 200, Anytown, ST 12345
-- Phone: (978) 372-7050
-- Scheduling appointments
-- Answering questions about tax documents needed
-- Directing them to the client portal
-
-NEVER share specific tax amounts or financial details via text.
-If they need detailed help, suggest calling or visiting the portal.
-Be warm and professional. Use casual texting style but stay professional.`;
+// Use centralized SMS prompt from shared package
+const SMS_SYSTEM_PROMPT = buildSystemPrompt('sms');
 
 async function getOpenAIResponse(messages: { role: string; content: string }[]): Promise<string> {
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -297,7 +285,7 @@ async function getOpenAIResponse(messages: { role: string; content: string }[]):
       'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: SMS_SYSTEM_PROMPT },
         ...messages,

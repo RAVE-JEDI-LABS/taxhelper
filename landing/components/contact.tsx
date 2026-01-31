@@ -7,7 +7,7 @@ const contactInfo = [
   {
     icon: MapPin,
     title: 'Office Address',
-    details: ['123 Main Street, Suite 200', 'Anytown, ST 12345'],
+    details: ['6 Chestnut St Suite 106', 'Amesbury, MA 01913'],
   },
   {
     icon: Phone,
@@ -225,12 +225,18 @@ export function Contact() {
               </div>
             ))}
 
-            {/* Map Placeholder */}
-            <div className="mt-8 bg-gray-200 rounded-2xl h-64 flex items-center justify-center">
-              <div className="text-center text-gray-500">
-                <MapPin className="w-8 h-8 mx-auto mb-2" />
-                <p>Map integration coming soon</p>
-              </div>
+            {/* Google Maps Embed */}
+            <div className="mt-8 rounded-2xl overflow-hidden h-64">
+              <iframe
+                src="https://maps.google.com/maps?q=6+Chestnut+St+Suite+106,+Amesbury,+MA+01913&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Gordon Ulen CPA Office Location"
+              />
             </div>
           </div>
         </div>

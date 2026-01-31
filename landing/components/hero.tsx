@@ -78,25 +78,18 @@ export function Hero() {
           <div className="order-1 lg:order-2 flex justify-center lg:justify-end">
             <div className="relative">
               {/* Main Image with Gold Frame */}
-              <div 
-                className="relative w-72 md:w-96 lg:w-[420px] aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border-4 border-accent bg-primary-800"
-                style={{
-                  backgroundImage: 'url(/images/gordon-ulen.jpg)',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center top',
-                  backgroundRepeat: 'no-repeat',
-                  imageRendering: '-webkit-optimize-contrast',
-                  filter: 'contrast(1.05) saturate(1.1)',
-                }}
+              <div
+                className="relative w-44 md:w-56 lg:w-64 aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border-4 border-accent bg-primary-800"
               >
-                {/* Gradient overlay for better text contrast on badge */}
-                <div className="absolute inset-0 bg-gradient-to-t from-primary-900/20 via-transparent to-transparent pointer-events-none" />
-                {/* Accessibility: hidden img for screen readers */}
-                <img
+                <Image
                   src="/images/gordon-ulen.jpg"
                   alt="Gordon W. Ulen, CPA"
-                  className="sr-only"
+                  fill
+                  className="object-cover object-top"
+                  priority
                 />
+                {/* Gradient overlay for better text contrast on badge */}
+                <div className="absolute inset-0 bg-gradient-to-t from-primary-900/20 via-transparent to-transparent pointer-events-none" />
               </div>
 
               {/* Decorative elements */}
