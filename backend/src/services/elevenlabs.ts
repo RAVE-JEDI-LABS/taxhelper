@@ -30,6 +30,7 @@ export class ElevenLabsConversation extends EventEmitter {
   private intent: Intent | null = null;
   private transcript: string[] = [];
   private isConnected = false;
+  private statusContext: string | null = null;
 
   constructor(callSid: string) {
     super();
@@ -199,6 +200,35 @@ Appointment types available:
 
   setIntent(intent: Intent): void {
     this.intent = intent;
+  }
+
+  /**
+   * Inject context into the conversation (e.g., status lookup results)
+   * This sends a message to the agent with context it should use in its response
+   */
+  injectContext(context: string): void {
+    if (!this.ws || !this.isConnected) return;
+
+    this.statusContext = context;
+
+    // Send context as a system message that the agent should incorporate
+    // ElevenLabs Conversational AI supports injecting context via client events
+    const contextMessage = {
+      type: 'client_tool_result',
+      tool_call_id: `status_lookup_${Date.now()}`,
+      result: context,
+    };
+
+    try {
+      this.ws.send(JSON.stringify(contextMessage));
+      console.log(`[ElevenLabs] Injected context: ${context.substring(0, 100)}...`);
+    } catch (error) {
+      console.error('[ElevenLabs] Error injecting context:', error);
+    }
+  }
+
+  getStatusContext(): string | null {
+    return this.statusContext;
   }
 
   getTranscript(): string[] {

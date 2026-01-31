@@ -56,9 +56,20 @@ interface StaffMember {
   available: boolean;
 }
 
+interface TaxReturn {
+  id?: string;
+  customerId: string;
+  taxYear: number;
+  status: string;
+  returnType?: string;
+  assignedPreparer?: string;
+  extensionFiled?: boolean;
+}
+
 const callLogService = new FirestoreService<CallLog>('call_logs');
 const smsLogService = new FirestoreService<SmsLog>('sms_logs');
-const customerService = new FirestoreService<{ id?: string; phone?: string; name?: string }>('customers');
+const customerService = new FirestoreService<{ id?: string; phone?: string; name?: string; email?: string }>('customers');
+const taxReturnService = new FirestoreService<TaxReturn>('tax_returns');
 
 export const twilioRouter: Router = Router();
 
@@ -449,6 +460,51 @@ twilioRouter.post('/sms/status', async (req: Request, res: Response) => {
 });
 
 /**
+ * Normalize phone number to E.164 format for consistent lookups
+ */
+function normalizePhoneNumber(phone: string): string {
+  // Remove all non-digit characters
+  const digits = phone.replace(/\D/g, '');
+
+  // If it's a 10-digit US number, add +1
+  if (digits.length === 10) {
+    return `+1${digits}`;
+  }
+
+  // If it's 11 digits starting with 1, add +
+  if (digits.length === 11 && digits.startsWith('1')) {
+    return `+${digits}`;
+  }
+
+  // Return with + if not already there
+  return phone.startsWith('+') ? phone : `+${digits}`;
+}
+
+/**
+ * Format tax return status into a human-readable message
+ * IMPORTANT: Never disclose specific dollar amounts
+ */
+function formatTaxReturnStatus(taxReturn: TaxReturn, customerName: string): string {
+  const statusMessages: Record<string, string> = {
+    intake: `${customerName}, your return for ${taxReturn.taxYear} is in our intake queue. We'll begin processing it shortly.`,
+    documents_pending: `${customerName}, we're still waiting on some documents for your ${taxReturn.taxYear} return. Please check your portal or contact us for a list of what's needed.`,
+    documents_complete: `Great news, ${customerName}! We have all your documents for ${taxReturn.taxYear}. Your return is queued for preparation.`,
+    in_preparation: `${customerName}, your ${taxReturn.taxYear} return is currently being prepared by our team.`,
+    review_needed: `${customerName}, your ${taxReturn.taxYear} return is in review. We may reach out if we have any questions.`,
+    waiting_on_client: `${customerName}, your ${taxReturn.taxYear} return is on hold - we need some additional information from you. Please check your portal or give us a call.`,
+    ready_for_signing: `${customerName}, great news! Your ${taxReturn.taxYear} return is ready for your review and signature. Would you like to schedule an appointment to come in?`,
+    completed: `${customerName}, your ${taxReturn.taxYear} return has been completed. Please stop by to pick up your copies if you haven't already.`,
+    filed: `${customerName}, your ${taxReturn.taxYear} return has been filed with the IRS. You should receive confirmation within a few weeks.`,
+    picked_up: `${customerName}, according to our records, you've already picked up your ${taxReturn.taxYear} return. Let us know if you need anything else!`,
+    extension_needed: `${customerName}, it looks like we need to file an extension for your ${taxReturn.taxYear} return. Please contact us to discuss the details.`,
+    extension_filed: `${customerName}, we've filed an extension for your ${taxReturn.taxYear} return. You'll have until October 15th to complete filing.`,
+  };
+
+  return statusMessages[taxReturn.status] ||
+    `${customerName}, your ${taxReturn.taxYear} return is currently being processed. Status: ${taxReturn.status}`;
+}
+
+/**
  * Handle AI agent actions
  */
 async function handleAgentAction(
@@ -486,9 +542,72 @@ async function handleAgentAction(
       break;
 
     case 'lookup_status':
-      // TODO: Look up return status and provide to conversation
       console.log('[Twilio] Look up status:', action.params);
       conversation.setIntent('status_inquiry');
+
+      // Try to find customer by phone or name from action params
+      const lookupPhone = action.params?.phone;
+      const lookupName = action.params?.name;
+
+      let statusCustomer = null;
+
+      // First try phone number lookup
+      if (lookupPhone) {
+        const normalizedPhone = normalizePhoneNumber(lookupPhone);
+        statusCustomer = await customerService.findOne({ phone: normalizedPhone });
+      }
+
+      // If no phone match, try name lookup
+      if (!statusCustomer && lookupName) {
+        // Search by name (case-insensitive would be better but Firestore doesn't support it directly)
+        statusCustomer = await customerService.findOne({ name: lookupName });
+      }
+
+      if (statusCustomer) {
+        console.log(`[Twilio] Found customer for status lookup: ${statusCustomer.id} (${statusCustomer.name})`);
+
+        // Get their tax returns - get the most recent year
+        const currentYear = new Date().getFullYear();
+        let taxReturn = await taxReturnService.findOne({
+          customerId: statusCustomer.id,
+          taxYear: currentYear
+        });
+
+        // If no current year return, try previous year
+        if (!taxReturn) {
+          taxReturn = await taxReturnService.findOne({
+            customerId: statusCustomer.id,
+            taxYear: currentYear - 1
+          });
+        }
+
+        if (taxReturn) {
+          const statusMessage = formatTaxReturnStatus(taxReturn, statusCustomer.name || 'Customer');
+          console.log(`[Twilio] Tax return status for ${statusCustomer.name}: ${taxReturn.status}`);
+
+          // Store the status context for the conversation
+          // The agent will use this in its response
+          conversation.emit('status_result', {
+            customerId: statusCustomer.id,
+            customerName: statusCustomer.name,
+            taxYear: taxReturn.taxYear,
+            status: taxReturn.status,
+            statusMessage,
+          });
+        } else {
+          console.log(`[Twilio] No tax return found for customer ${statusCustomer.id}`);
+          conversation.emit('status_result', {
+            customerId: statusCustomer.id,
+            customerName: statusCustomer.name,
+            statusMessage: `I found your account, ${statusCustomer.name}, but I don't see a tax return on file for this year. Would you like to schedule an appointment to get started?`,
+          });
+        }
+      } else {
+        console.log('[Twilio] Could not find customer for status lookup');
+        conversation.emit('status_result', {
+          statusMessage: "I wasn't able to find your account with that information. Can you please verify your name and the phone number on file with us?",
+        });
+      }
       break;
 
     case 'end_call':

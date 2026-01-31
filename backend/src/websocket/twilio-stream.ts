@@ -152,6 +152,14 @@ export function setupTwilioWebSocket(server: Server): void {
               console.error(`[ElevenLabs] Error for call ${callSid}:`, error);
             });
 
+            // Listen for status lookup results and inject into conversation
+            conversation.on('status_result', (result) => {
+              console.log(`[Status Lookup] Result for call ${callSid}:`, result.statusMessage);
+              if (result.statusMessage) {
+                conversation!.injectContext(result.statusMessage);
+              }
+            });
+
             // Connect to ElevenLabs
             try {
               await conversation.connect();
