@@ -22,6 +22,7 @@ export function initializeFirebase() {
   }
 
   db = admin.firestore();
+  db.settings({ ignoreUndefinedProperties: true });
   auth = admin.auth();
   storage = admin.storage();
 

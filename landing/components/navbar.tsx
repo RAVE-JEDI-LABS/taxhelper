@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Menu, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Logo } from './logo'
 
 const navLinks = [
   { href: '#services', label: 'Services' },
@@ -22,7 +21,9 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <a href="#" className="flex items-center">
-            <Logo size="sm" />
+            <span className="text-xl md:text-2xl font-bold text-primary-800">
+              Gordon W. Ulen, <span className="font-normal text-gray-600">CPA</span>
+            </span>
           </a>
 
           {/* Desktop Navigation */}

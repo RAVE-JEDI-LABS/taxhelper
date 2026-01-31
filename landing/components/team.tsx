@@ -1,26 +1,26 @@
-import { Mail, Linkedin } from 'lucide-react'
+import Image from 'next/image'
+import { Award, Users, Clock, ShieldCheck } from 'lucide-react'
 
-const team = [
+const credentials = [
   {
-    name: 'Gordon Ulen',
-    title: 'CPA, Managing Partner',
-    credentials: 'CPA, MBA',
-    bio: 'With over 25 years of experience, Gordon specializes in tax planning for small businesses and high-net-worth individuals.',
-    initials: 'GU',
+    icon: Award,
+    title: 'Licensed CPA',
+    description: 'Fully credentialed and in good standing with the state board',
   },
   {
-    name: 'Sarah Mitchell',
-    title: 'Senior Tax Accountant',
-    credentials: 'CPA, EA',
-    bio: 'Sarah brings 15 years of expertise in individual tax preparation and IRS representation.',
-    initials: 'SM',
+    icon: Users,
+    title: 'Client-Focused',
+    description: 'Personalized attention for every individual and business',
   },
   {
-    name: 'Michael Chen',
-    title: 'Business Services Manager',
-    credentials: 'CPA',
-    bio: 'Michael leads our business accounting practice, helping entrepreneurs keep their finances on track.',
-    initials: 'MC',
+    icon: Clock,
+    title: 'Year-Round Support',
+    description: 'Available when you need us, not just during tax season',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'IRS Enrolled',
+    description: 'Authorized to represent clients before the IRS',
   },
 ]
 
@@ -31,55 +31,47 @@ export function Team() {
         {/* Section Header */}
         <div className="text-center mb-16">
           <span className="text-accent font-semibold uppercase tracking-wider text-sm">
-            Our Team
+            Why Choose Us
           </span>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2 mb-4">
-            Meet Your Financial Experts
+            Expertise You Can Trust
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-            Our experienced team of professionals is dedicated to your financial success.
+            With decades of experience, Gordon W. Ulen provides the expertise and personal attention your finances deserve.
           </p>
         </div>
 
-        {/* Team Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {team.map((member) => (
+        {/* Credentials Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          {credentials.map((item) => (
             <div
-              key={member.name}
-              className="bg-gray-50 rounded-2xl p-8 text-center hover:shadow-lg transition-shadow"
+              key={item.title}
+              className="bg-gray-50 rounded-xl p-6 text-center hover:shadow-md transition-shadow"
             >
-              {/* Avatar Placeholder */}
-              <div className="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-primary to-primary-600 rounded-full flex items-center justify-center">
-                <span className="text-4xl font-bold text-white">{member.initials}</span>
+              <div className="w-14 h-14 bg-primary-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <item.icon className="w-7 h-7 text-primary" />
               </div>
-
-              {/* Info */}
-              <h3 className="text-xl font-bold text-gray-900 mb-1">
-                {member.name}
-              </h3>
-              <p className="text-accent font-medium mb-1">{member.title}</p>
-              <p className="text-gray-500 text-sm mb-4">{member.credentials}</p>
-              <p className="text-gray-600 mb-6">{member.bio}</p>
-
-              {/* Social Links */}
-              <div className="flex items-center justify-center gap-3">
-                <a
-                  href="#"
-                  className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors"
-                  aria-label={`Email ${member.name}`}
-                >
-                  <Mail size={18} />
-                </a>
-                <a
-                  href="#"
-                  className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors"
-                  aria-label={`${member.name} on LinkedIn`}
-                >
-                  <Linkedin size={18} />
-                </a>
-              </div>
+              <h3 className="font-bold text-gray-900 mb-2">{item.title}</h3>
+              <p className="text-gray-600 text-sm">{item.description}</p>
             </div>
           ))}
+        </div>
+
+        {/* Office Dog - Fun Touch */}
+        <div className="text-center">
+          <div className="inline-block bg-accent-50 rounded-2xl p-6 max-w-md">
+            <div className="w-28 h-28 mx-auto mb-4 rounded-full overflow-hidden border-4 border-white shadow-lg">
+              <Image
+                src="/images/office-dog.jpg"
+                alt="Office Dog"
+                width={112}
+                height={112}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <p className="text-gray-700 font-medium">Our Office Greeter</p>
+            <p className="text-gray-500 text-sm">Making tax season a little less ruff!</p>
+          </div>
         </div>
       </div>
     </section>

@@ -123,11 +123,17 @@ export async function getCallDetails(callSid: string) {
 }
 
 export async function sendSms(to: string, body: string): Promise<string> {
-  const message = await twilioClient.messages.create({
+  const messageOptions: any = {
     to,
     from: twilioPhoneNumber,
     body,
-    statusCallback: `${process.env.API_BASE_URL}/api/twilio/sms/status`,
-  });
+  };
+
+  // Only add status callback if API_BASE_URL is configured
+  if (process.env.API_BASE_URL) {
+    messageOptions.statusCallback = `${process.env.API_BASE_URL}/api/twilio/sms/status`;
+  }
+
+  const message = await twilioClient.messages.create(messageOptions);
   return message.sid;
 }

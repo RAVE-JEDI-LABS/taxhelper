@@ -1,5 +1,4 @@
 import { Facebook, Linkedin, Twitter } from 'lucide-react'
-import { Logo } from './logo'
 
 const quickLinks = [
   { href: '#services', label: 'Services' },
@@ -35,7 +34,9 @@ export function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-1">
             <a href="#" className="inline-block mb-4">
-              <Logo variant="light" size="md" />
+              <span className="text-2xl font-bold text-white">
+                Gordon W. Ulen, <span className="font-normal text-gray-400">CPA</span>
+              </span>
             </a>
             <p className="text-gray-400 mb-6">
               Expert tax preparation and financial guidance for individuals and

@@ -123,7 +123,7 @@ assistantRouter.post('/chat', async (req: AuthenticatedRequest, res, next) => {
         'Authorization': `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-3.5-turbo',
         messages: [
           { role: 'system', content: systemPrompt + customerContext },
           ...messages.map(m => ({
@@ -153,25 +153,27 @@ assistantRouter.post('/chat', async (req: AuthenticatedRequest, res, next) => {
 
       if (existingLog) {
         // Update existing conversation
-        await chatLogService.update(existingLog.id!, {
-          customerId: customerId || existingLog.customerId,
+        const updateData: Partial<ChatLog> = {
           messages: [
             ...existingLog.messages,
             { role: 'user', content: lastUserMsg.content, timestamp },
             { role: 'assistant', content: assistantMessage, timestamp },
           ],
-        });
+        };
+        if (customerId) updateData.customerId = customerId;
+        await chatLogService.update(existingLog.id!, updateData);
       } else {
         // Create new conversation log
-        await chatLogService.createWithId(sessionId, {
+        const newLog: Omit<ChatLog, 'id'> = {
           sessionId,
-          customerId,
           channel: 'web',
           messages: [
             { role: 'user', content: lastUserMsg.content, timestamp },
             { role: 'assistant', content: assistantMessage, timestamp },
           ],
-        });
+        };
+        if (customerId) newLog.customerId = customerId;
+        await chatLogService.createWithId(sessionId, newLog);
       }
     }
 

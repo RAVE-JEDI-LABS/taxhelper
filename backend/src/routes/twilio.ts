@@ -44,6 +44,7 @@ interface SmsLog {
   direction: 'inbound' | 'outbound';
   status: 'received' | 'sent' | 'delivered' | 'failed';
   customerId?: string;
+  customerName?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -296,7 +297,7 @@ async function getOpenAIResponse(messages: { role: string; content: string }[]):
       'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: 'gpt-3.5-turbo',
       messages: [
         { role: 'system', content: SMS_SYSTEM_PROMPT },
         ...messages,
@@ -416,9 +417,9 @@ twilioRouter.post('/sms/send', async (req: Request, res: Response) => {
     });
 
     res.json({ success: true, messageSid });
-  } catch (error) {
-    console.error('[Twilio] Error sending SMS:', error);
-    res.status(500).json({ error: 'Failed to send SMS' });
+  } catch (error: any) {
+    console.error('[Twilio] Error sending SMS:', error?.message || error);
+    res.status(500).json({ error: 'Failed to send SMS', details: error?.message });
   }
 });
 
