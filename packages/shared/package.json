@@ -4,6 +4,10 @@
   "description": "Shared OpenAPI schema and generated types for TaxHelper",
   "main": "generated/typescript/schema.ts",
   "types": "generated/typescript/schema.ts",
+  "exports": {
+    ".": "./generated/typescript/schema.ts",
+    "./generated/typescript/schema": "./generated/typescript/schema.ts"
+  },
   "scripts": {
     "generate": "pnpm run generate:ts && pnpm run generate:python",
     "generate:ts": "openapi-typescript openapi.yaml -o generated/typescript/schema.ts",

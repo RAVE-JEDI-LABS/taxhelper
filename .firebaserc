@@ -1,1 +1,15 @@
-{"projects": {"default": "taxhelper-ravejedilabs"}}
+{
+  "projects": {
+    "default": "taxhelper-ravejedilabs"
+  },
+  "targets": {
+    "taxhelper-ravejedilabs": {
+      "hosting": {
+        "main": [
+          "gordonulencpa"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

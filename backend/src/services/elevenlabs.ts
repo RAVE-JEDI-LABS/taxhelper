@@ -39,6 +39,15 @@ export class ElevenLabsConversation extends EventEmitter {
 
   async connect(): Promise<void> {
     return new Promise((resolve, reject) => {
+      console.log(`[ElevenLabs] Connecting with agent_id: ${ELEVENLABS_AGENT_ID?.substring(0, 10)}..., API key set: ${!!ELEVENLABS_API_KEY}`);
+
+      if (!ELEVENLABS_AGENT_ID || !ELEVENLABS_API_KEY) {
+        const error = new Error('ElevenLabs credentials not configured');
+        console.error('[ElevenLabs]', error.message);
+        reject(error);
+        return;
+      }
+
       const wsUrl = `wss://api.elevenlabs.io/v1/convai/conversation?agent_id=${ELEVENLABS_AGENT_ID}`;
 
       this.ws = new WebSocket(wsUrl, {
@@ -66,9 +75,9 @@ export class ElevenLabsConversation extends EventEmitter {
         reject(error);
       });
 
-      this.ws.on('close', () => {
+      this.ws.on('close', (code, reason) => {
         this.isConnected = false;
-        console.log(`[ElevenLabs] Disconnected for call ${this.callSid}`);
+        console.log(`[ElevenLabs] Disconnected for call ${this.callSid}, code: ${code}, reason: ${reason?.toString() || 'none'}`);
         this.emit('end', { transcript: this.transcript, intent: this.intent });
       });
     });
@@ -100,7 +109,7 @@ export class ElevenLabsConversation extends EventEmitter {
   }
 
   private getSystemPrompt(): string {
-    return `You are a professional AI receptionist for Gordon Ulen CPA, a tax preparation firm.
+    return `You are a professional AI receptionist for Gordon Ulen CPA, a tax preparation firm in Amesbury, MA.
 
 Your capabilities:
 - Schedule, reschedule, or cancel appointments
@@ -117,9 +126,16 @@ Important rules:
 5. If the caller seems frustrated or explicitly requests a human, transfer immediately
 6. For new clients, gather: name, phone, email, type of return needed
 
-When you need to take action, respond with a JSON object:
+When the caller asks about their tax return status:
+1. Ask for their name and phone number on file
+2. Use the lookup_status action with their info
+3. Wait for the status result to be provided to you
+4. Relay the status information in a conversational way
+5. NEVER mention specific dollar amounts or refund figures
+
+When you need to take action, respond with a JSON object embedded in your speech:
+- To check status: {"action": "lookup_status", "params": {"name": "John Smith", "phone": "978-555-1234"}}
 - To schedule: {"action": "schedule", "params": {"name": "...", "phone": "...", "date": "...", "type": "..."}}
-- To check status: {"action": "lookup_status", "params": {"name": "...", "phone": "..."}}
 - To transfer: {"action": "transfer", "params": {"reason": "..."}}
 - To end call: {"action": "end_call", "params": {"summary": "..."}}
 
@@ -127,7 +143,12 @@ Appointment types available:
 - Tax Prep (60-90 min)
 - Drop-off (15 min)
 - Pick-up/Signing (30 min)
-- Consultation (60 min)`;
+- Consultation (60 min)
+
+Office information:
+- Address: 6 Chestnut St Suite 106, Amesbury, MA 01913
+- Phone: (978) 372-7050
+- Hours: Monday-Friday 9am-5pm, Saturday 9am-12pm during tax season`;
   }
 
   private handleMessage(data: WebSocket.RawData): void {
